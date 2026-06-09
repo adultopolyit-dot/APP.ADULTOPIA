@@ -1617,7 +1617,10 @@ aiAudioPlaying=true;
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 audioSafetyTimeout=setTimeout(function(){
 if(aiAudioPlaying){
-console.log('processAudioQueue: SAFETY TIMEOUT - reset aiAudioPlaying');
+console.log('processAudioQueue: SAFETY TIMEOUT - stop e avanza');
+// Ferma esplicitamente la voce corrente per evitare accavallamenti
+try{if(webAudioSource){webAudioSource.onended=null;webAudioSource.stop();webAudioSource=null;}}catch(e){}
+try{if(currentAudio){currentAudio.pause();currentAudio=null;}}catch(e){}
 aiAudioPlaying=false;
 processAudioQueue();
 }
@@ -1647,6 +1650,16 @@ try{
 // Assicura graph inizializzato (voiceGainNode creato)
 initAudioGraph();
 var audioBuffer=await ac.decodeAudioData(arrayBuffer);
+// Riarma il safety timeout sulla durata reale (+3s margine): non scatta piu'
+// durante una narrazione lunga legittima, quindi niente accavallamento.
+try{if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
+audioSafetyTimeout=setTimeout(function(){
+if(aiAudioPlaying){
+try{if(webAudioSource){webAudioSource.onended=null;webAudioSource.stop();webAudioSource=null;}}catch(e){}
+try{if(currentAudio){currentAudio.pause();currentAudio=null;}}catch(e){}
+aiAudioPlaying=false;processAudioQueue();
+}
+},Math.ceil((audioBuffer.duration||30)*1000)+3000);}catch(e){}
 // Ferma eventuale source precedente
 if(webAudioSource){
 try{webAudioSource.stop();}catch(e){}
@@ -1796,6 +1809,15 @@ function sanitizeForTTS(text){
   t = t.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{27BF}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]/gu, '');
   // Rimuovi asterischi, trattini multipli, simboli markdown
   t = t.replace(/\*+/g, '').replace(/_+/g, ' ').replace(/#+/g, '');
+  // Pronuncia: abbreviazioni di tempo lette per esteso (solo se abbreviate)
+  t = t.replace(/(\d+)\s*min\b\.?/gi, '$1 minuti');
+  t = t.replace(/(\d+)\s*sec\b\.?/gi, '$1 secondi');
+  // Abbreviazioni comuni
+  t = t.replace(/\becc\.?\b/gi, 'eccetera');
+  t = t.replace(/\bvs\.?\b/gi, 'contro');
+  t = t.replace(/\bn°\s*/gi, 'numero ');
+  // Trattino fra parole letto male: lo trasformo in pausa breve
+  t = t.replace(/(\S)\s*[\u2013\u2014]\s*(\S)/g, '$1, $2');
   // Normalizza spazi
   t = t.replace(/\s+/g, ' ').trim();
   return t;
