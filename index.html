@@ -289,6 +289,8 @@ color:var(--cream)
 @keyframes conteBubble{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
 .conte-intro-hero{width:150px;height:150px;margin:0 auto 12px;display:block;mix-blend-mode:screen;animation:conteFloat 3s ease-in-out infinite}
 .paywall-conte{width:100px;height:100px;margin:0 auto 6px;background-image:url('assets/mascot/conte-poses.png');background-size:200% 200%;background-position:100% 100%;filter:drop-shadow(0 6px 16px rgba(185,28,28,.5));animation:conteFloat 2.8s ease-in-out infinite}
+.conte-sprite.talk{background-image:url('assets/mascot/conte-talk.png');background-size:200% 100%;background-position:0% 50%}
+.conte-sprite.talk.open{background-position:100% 50%}
 .trial-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(90deg,var(--ruby),#7f1d1d);padding:4px 10px;z-index:9998;text-align:center;font-size:0.65rem;color:var(--cream);font-weight:600;box-shadow:0 -2px 10px rgba(0,0,0,0.5);line-height:1.2}
 .trial-banner span{color:var(--gold)}
 body.has-trial-banner .dc{padding-bottom:calc(35px + env(safe-area-inset-bottom,0px))!important}
@@ -513,6 +515,58 @@ var n=parseInt(raw);return isNaN(n)?0:n; // retrocompat vecchio formato intero
 function trialSetUsed(n){try{localStorage.setItem(TRIAL_STORAGE_KEY,JSON.stringify({d:trialTodayKey(),used:n}));}catch(e){}}
 // ========== IL CONTE: mascotte gamemaster (Duolingo-style) ==========
 var conteTimer=null;
+// ========== LIP-SYNC: il Conte parla quando parla il narratore ==========
+// La bocca si apre in base al volume reale della voce (AnalyserNode).
+// Fallback: flap a tempo fisso se l'analyser non e' disponibile (HTMLAudio iOS).
+var conteAnalyser=null,conteAnalyserData=null,conteTalkRAF=null,conteFlapInt=null;
+function conteTalkStart(text,ms){
+try{
+var s=document.getElementById('conteSprite'),b=document.getElementById('conteBubble'),wr=document.getElementById('conte');
+if(!s||!b||!wr)return;
+s.className='conte-sprite talk';
+if(text)b.innerHTML=text;
+wr.classList.add('on');
+if(conteTimer)clearTimeout(conteTimer);
+if(ms)conteTimer=setTimeout(conteTalkStop,ms+800);
+}catch(e){}
+}
+function conteTalkStop(){
+try{
+if(conteTalkRAF){cancelAnimationFrame(conteTalkRAF);conteTalkRAF=null;}
+if(conteFlapInt){clearInterval(conteFlapInt);conteFlapInt=null;}
+var s=document.getElementById('conteSprite'),wr=document.getElementById('conte');
+if(s)s.classList.remove('open');
+if(conteTimer)clearTimeout(conteTimer);
+conteTimer=setTimeout(function(){if(wr)wr.classList.remove('on');if(s)s.className='conte-sprite wink';},1400);
+}catch(e){}
+}
+function conteLipLoop(){
+if(!conteAnalyser){conteTalkRAF=null;return;}
+var s=document.getElementById('conteSprite');
+if(!s||!s.classList.contains('talk')){conteTalkRAF=null;return;}
+conteAnalyser.getByteFrequencyData(conteAnalyserData);
+var sum=0;for(var i=2;i<24&&i<conteAnalyserData.length;i++)sum+=conteAnalyserData[i];
+var avg=sum/22;
+if(avg>26)s.classList.add('open');else s.classList.remove('open');
+conteTalkRAF=requestAnimationFrame(conteLipLoop);
+}
+function conteAttachAnalyser(ac,node){
+try{
+if(!conteAnalyser){conteAnalyser=ac.createAnalyser();conteAnalyser.fftSize=64;conteAnalyserData=new Uint8Array(conteAnalyser.frequencyBinCount);}
+node.connect(conteAnalyser);
+if(conteTalkRAF)cancelAnimationFrame(conteTalkRAF);
+conteTalkRAF=requestAnimationFrame(conteLipLoop);
+return true;
+}catch(e){return false;}
+}
+function conteFlapStart(){
+if(conteFlapInt)clearInterval(conteFlapInt);
+conteFlapInt=setInterval(function(){
+var s=document.getElementById('conteSprite');
+if(!s||!s.classList.contains('talk')){clearInterval(conteFlapInt);conteFlapInt=null;return;}
+s.classList.toggle('open');
+},130);
+}
 function conteSay(pose,text,ms){
 try{
 var w=document.getElementById('conte'),s=document.getElementById('conteSprite'),b=document.getElementById('conteBubble');
@@ -1701,6 +1755,7 @@ if(bg&&bgMusicPlaying){bg.volume=duckingVolume;}
 pauseMicForAudio();
 console.log('processAudioQueue: chiamo API TTS...');
 try{
+window._conteText=t;
 var blob=await cachedTTS(t, narratorVoice);
 console.log('processAudioQueue: blob ricevuto');
 // Usa Web Audio API per iOS compatibility
@@ -1747,6 +1802,7 @@ if(voiceGainNode){
   currentGainNode.connect(ac.destination);
 }
 webAudioSource.onended=function(){
+conteTalkStop();
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 webAudioSource=null;
 if(currentGainNode){try{currentGainNode.disconnect();}catch(e){}currentGainNode=null;}
@@ -1756,6 +1812,8 @@ applyMusicVolume();
 resumeMicAfterAudio();
 processAudioQueue();
 };
+conteTalkStart(t,Math.ceil((audioBuffer.duration||6)*1000));
+if(!conteAttachAnalyser(ac,webAudioSource))conteFlapStart();
 webAudioSource.start(0);
 console.log('processAudioQueue: Web Audio avviato!');
 }catch(decodeErr){
@@ -1769,6 +1827,7 @@ playWithHTMLAudio(blob,bg);
 }
 }catch(e){
 console.log('TTS error:',e.message||e);
+try{conteSay('wink',t,Math.max(3500,(t||'').length*55));}catch(_e){}
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 aiAudioPlaying=false;
 if(bg&&bgMusicPlaying){bg.volume=musicVolume;}
@@ -1782,6 +1841,7 @@ processAudioQueue();
 // dal gain node e lo slider agisce live. Su iOS Safari questo path non
 // dovrebbe mai eseguirsi perche' Web Audio e' disponibile.
 function playWithHTMLAudio(blob,bg){
+conteTalkStart(window._conteText||'',null);conteFlapStart();
 var url=URL.createObjectURL(blob);
 currentAudio=new Audio(url);
 currentAudio.volume=1.0;  // Il gain node comanda
@@ -1804,6 +1864,7 @@ try{
 }
 
 currentAudio.onended=function(){
+conteTalkStop();
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 URL.revokeObjectURL(url);
 if(mediaSource){try{mediaSource.disconnect();}catch(e){}}
@@ -1814,6 +1875,7 @@ resumeMicAfterAudio();
 processAudioQueue();
 };
 currentAudio.onerror=function(){
+conteTalkStop();
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 if(mediaSource){try{mediaSource.disconnect();}catch(e){}}
 currentAudio=null;
@@ -1902,7 +1964,8 @@ if(shouldSkipSpeak(t)){
 t = sanitizeForTTS(t);
 if(!t) return;
 if(!voiceEnabled){
-console.log('speak: voiceEnabled=false, esco');
+console.log('speak: voiceEnabled=false, bubble muto');
+try{conteSay('wink',t,Math.max(3500,t.length*55));}catch(_e){}
 return;
 }
 // NON parlare durante strip music
@@ -1925,6 +1988,7 @@ processAudioQueue();
 
 // Ferma audio corrente e svuota coda
 function stopSpeaking(){
+conteTalkStop();
 aiAudioQueue=[];
 if(currentAudio){
 currentAudio.pause();
@@ -2486,7 +2550,7 @@ if(aiEnabled&&aiApiKey){
 setTimeout(readIntroAI,1500);
 }
 }
-function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(function(){conteSay('bow','<b>Benvenuti al tavolo.</b> Io sono il Conte, il vostro maestro di cerimonie. Tirate i dadi quando siete pronti... io osservo.',6500)},900)}
+function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(function(){speak('Benvenuti al tavolo! Io sono il Conte, il vostro maestro di cerimonie. Tirate i dadi quando siete pronti.')},900)}
 function renderClothes(p){var clothes=getClothes(p.isFemale),h='';for(var i=0;i<5;i++)h+='<span class="cl-item '+(p.clothesArr[i]?'worn':'removed')+'">'+clothes[i]+'</span>';return h}
 function render(){var h='',cls=G.ps.length>2?'pg m':'pg';E('pgrid').className=cls;for(var i=0;i<G.ps.length;i++){var p=G.ps[i],act=i==G.cp;var isTied=tiedData.pid===i&&tiedData.rem>0;var hasBaby=babyData.from===i;h+='<div class="pc'+(act?' act':'')+(p.jail?' jl':'')+(p.out?' out':'')+'">';h+='<div class="pnm">'+(p.isFemale?'👩':'👨')+' '+shortName(p.name)+(isTied?' <span style="background:#d4af37;color:#000;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px">🔗 '+Math.floor(tiedData.rem/60)+':'+(tiedData.rem%60<10?'0':'')+tiedData.rem%60+'</span>':'')+(hasBaby?' <span style="font-size:1.2rem;margin-left:4px">👶</span>':'')+'</div>';h+='<div class="pst"><span>💰'+p.money+'</span><span>📍'+p.pos+(p.jail?'⛓️':'')+'</span></div>';h+='<div class="pds">';var sorted=p.props.slice().sort(function(a,b){return(P2C[a]||0)-(P2C[b]||0)});for(var j=0;j<sorted.length;j++){var pos=sorted[j],pr=G.props[pos];if(pr&&BD[pos]&&BD[pos].cn){var c=PC[BD[pos].cn];if(c)h+='<div class="pd" style="background:'+c.c+';'+(pr.mort?'opacity:0.4;':'')+'position:relative" onclick="openBuildProp('+pos+','+i+')">'+(pr.mort?'🔒':(pr.hotel?'H':(pr.houses||'')))+'</div>'}}h+='</div><div class="pcl" onclick="openCl('+i+')">'+renderClothes(p)+'</div></div>'}E('pgrid').innerHTML=h;E('rnd').textContent='R'+G.round}
 function updTurn(){E('turn').textContent=shortName(G.ps[G.cp].name)}
@@ -2507,7 +2571,7 @@ function openCl(i){clEdit=i;E('clname').textContent=(G.ps[i].isFemale?'👩':'�
 function renderClothEditor(){var p=G.ps[clEdit],clothes=getClothes(p.isFemale),h='';for(var j=0;j<5;j++)h+='<span class="cl-item '+(p.clothesArr[j]?'worn':'removed')+'" onclick="toggleCloth('+j+')" style="cursor:pointer;font-size:2.5rem">'+clothes[j]+'</span>';E('clothItems').innerHTML=h;E('clothM').classList.add('on')}
 function toggleCloth(idx){var p=G.ps[clEdit];p.clothesArr[idx]=p.clothesArr[idx]?0:1;p.clothes=p.clothesArr.reduce(function(a,b){return a+b},0);renderClothEditor()}
 function saveCl(){closeM('clothM');render();saveGame();chkOver()}
-function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){conteSay('celebrate','<b>Doppio '+v1+'!</b> La fortuna premia gli audaci. Ritirate!',4200)}doMove()},750)}
+function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){conteSay('celebrate','Doppio '+v1+'!',2200);speak('Doppio! La fortuna premia gli audaci. Ritirate!')}doMove()},750)}
 function doMove(){var p=G.ps[G.cp],sum=G.dice[0]+G.dice[1];if(p.jail){if(G.dice[0]==G.dice[1]){p.jail=false;p.jailT=0;toast('🎉','Libero!')}else{p.jailT++;if(p.jailT>=3){p.money-=200;p.jail=false;p.jailT=0;toast('💸','-200€')}else{toast('⛓️','In prigione');render();showEnd();return}}}var np=p.pos+sum;var passedVia=false;if(np>40){np-=40;passedVia=true;p.money+=200;removeOneCloth(p);toast('💰','+200€ -1👕');addHist(shortName(p.name)+' passa Via: +200€ -1 vestito');checkOneClothWarning(p);
 // Annuncio vocale passaggio dal Via
 speak(p.name+' passa dal Via! Incassa 200 euro ma deve togliersi un indumento!');
