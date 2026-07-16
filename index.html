@@ -273,6 +273,22 @@ color:var(--cream)
 .paywall-message{margin-top:10px;padding:8px;border-radius:8px;font-size:0.75rem;display:none}
 .paywall-message.error{display:block;background:rgba(185,28,28,0.2);color:var(--ruby3);border:1px solid rgba(185,28,28,0.3)}
 .paywall-message.success{display:block;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
+/* ========== IL CONTE - MASCOTTE GAMEMASTER (sprite 2x2: bow|celebrate / wink|key) ========== */
+.conte-wrap{position:fixed;left:10px;bottom:44px;z-index:9997;display:none;align-items:flex-end;gap:8px;pointer-events:none}
+.conte-wrap.on{display:flex;animation:conteIn .45s cubic-bezier(.34,1.56,.64,1) both}
+.conte-sprite{width:92px;height:92px;background-image:url('assets/mascot/conte-poses.png');background-size:200% 200%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6));animation:conteFloat 2.6s ease-in-out infinite}
+.conte-sprite.bow{background-position:0% 0%}
+.conte-sprite.celebrate{background-position:100% 0%;animation:conteBounce .55s cubic-bezier(.34,1.56,.64,1) 2}
+.conte-sprite.wink{background-position:0% 100%}
+.conte-sprite.key{background-position:100% 100%}
+.conte-bubble{max-width:210px;margin-bottom:14px;background:linear-gradient(145deg,#2a0a0a,#1a0505);border:1px solid rgba(185,28,28,.5);border-radius:14px 14px 14px 4px;padding:9px 12px;color:var(--cream);font-size:.78rem;line-height:1.4;font-family:'Montserrat',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.55);animation:conteBubble .3s ease-out .2s both}
+.conte-bubble b{color:var(--gold)}
+@keyframes conteIn{0%{transform:translateY(40px) scale(.6);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes conteFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes conteBounce{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-4deg)}70%{transform:scale(.95) rotate(3deg)}100%{transform:scale(1)}}
+@keyframes conteBubble{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.conte-intro-hero{width:150px;height:150px;margin:0 auto 12px;display:block;filter:drop-shadow(0 10px 30px rgba(185,28,28,.45));animation:conteFloat 3s ease-in-out infinite;border-radius:20px}
+.paywall-conte{width:100px;height:100px;margin:0 auto 6px;background-image:url('assets/mascot/conte-poses.png');background-size:200% 200%;background-position:100% 100%;filter:drop-shadow(0 6px 16px rgba(185,28,28,.5));animation:conteFloat 2.8s ease-in-out infinite}
 .trial-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(90deg,var(--ruby),#7f1d1d);padding:4px 10px;z-index:9998;text-align:center;font-size:0.65rem;color:var(--cream);font-weight:600;box-shadow:0 -2px 10px rgba(0,0,0,0.5);line-height:1.2}
 .trial-banner span{color:var(--gold)}
 body.has-trial-banner .dc{padding-bottom:calc(35px + env(safe-area-inset-bottom,0px))!important}
@@ -346,45 +362,63 @@ body.has-trial-banner .intro-cta{padding-bottom:35px}
 window.OPENAI_API_KEY='NETLIFY_FUNCTIONS';
 </script>
 
+<!-- ========== IL CONTE (mascotte gamemaster) ========== -->
+<div id="conte" class="conte-wrap" aria-hidden="true">
+<div id="conteSprite" class="conte-sprite wink"></div>
+<div id="conteBubble" class="conte-bubble"></div>
+</div>
+
 <!-- ========== TRIAL BANNER (3 lanci gratuiti) ========== -->
 <div id="trial-banner" class="trial-banner" style="display:none">
-🎲 Prova gratuita: <span id="trial-remaining">3</span> lanci rimanenti
+🎲 Gratis oggi: <span id="trial-remaining">3</span> lanci rimasti
 </div>
 
 <!-- ========== PAYWALL ========== -->
 <div id="adultopia-paywall" class="paywall-overlay" style="display:none">
 <div class="paywall-container">
 <div class="paywall-header">
-<div style="font-size:2rem;margin-bottom:5px">🔥</div>
+<div class="paywall-conte"></div>
 <h2 style="color:var(--cream);font-size:1.15rem;margin:0 0 5px 0;font-weight:700;line-height:1.2">Riscoprite l'intimità<br><span style="color:var(--ruby)">giocando insieme</span></h2>
 <p class="paywall-subtitle" style="font-size:0.8rem;opacity:0.7;margin:0">Oltre 10.000 coppie hanno già riacceso la passione</p>
 </div>
+<div class="paywall-stack" style="text-align:left;max-width:320px;margin:0 auto 10px;font-size:0.72rem;color:var(--cream);opacity:0.92;line-height:1.55">
+<div>✓ Narratore AI, 4 voci italiane</div>
+<div>✓ Sfide infinite, mai due serate uguali</div>
+<div>✓ Espansioni a tema (Soft+ inclusa)</div>
+<div>✓ Modalità companion della scatola</div>
+<div>✓ Due dispositivi, il tuo e il suo</div>
+</div>
 <div class="paywall-plans">
-<div class="plan-card" onclick="window.open('https://adultopia.it/products/app-mensile','_blank')">
+<div class="plan-card" onclick="window.open('https://adultopia.it/products/adultopia-app-mensile','_blank')">
 <div class="plan-icon">💎</div>
 <div class="plan-name">MENSILE</div>
-<div class="plan-price">€4.99<span>/mese</span></div>
+<div class="plan-price">€1.99<span>/mese</span></div>
 </div>
-<div class="plan-card popular" onclick="window.open('https://adultopia.it/products/app-annuale','_blank')">
+<div class="plan-card popular" onclick="window.open('https://adultopia.it/products/adultopia-app-annuale','_blank')">
 <div class="plan-badge">POPOLARE</div>
 <div class="plan-icon">👑</div>
 <div class="plan-name">ANNUALE</div>
-<div class="plan-price">€49.99<span>/anno</span></div>
-<div class="plan-savings">Risparmi €10!</div>
+<div style="font-size:0.62rem;text-decoration:line-through;opacity:0.5;color:var(--cream);margin-bottom:1px">€199.99</div>
+<div class="plan-price">€19.99<span>/anno</span></div>
+<div class="plan-savings">1,67€ al mese</div>
 </div>
-<div class="plan-card" onclick="window.open('https://adultopia.it/products/app-lifetime','_blank')">
+<div class="plan-card" onclick="window.open('https://adultopia.it/products/adultopia-app-lifetime','_blank')">
+<div class="plan-badge" style="background:var(--gold);color:#1a0000">LANCIO</div>
 <div class="plan-icon">🏆</div>
 <div class="plan-name">LIFETIME</div>
-<div class="plan-price">€99.99<span> una volta</span></div>
-<div class="plan-savings">Per sempre!</div>
+<div style="font-size:0.62rem;text-decoration:line-through;opacity:0.5;color:var(--cream);margin-bottom:1px">€699.99</div>
+<div class="plan-price">€69.99<span> una volta</span></div>
+<div class="plan-savings">Per sempre</div>
 </div>
 </div>
+<div style="font-size:0.7rem;color:var(--cream);opacity:0.82;margin:2px 0 8px;text-align:center">🛡️ 3 serate di prova. Se non si accende niente fra voi due, ti rimborsiamo.</div>
 <div class="paywall-divider"><span>Hai un codice di attivazione?</span></div>
 <div class="paywall-code-input">
 <input type="text" id="paywall-code" placeholder="AP-1234-5678" maxlength="25" autocomplete="off">
 <button onclick="paywallActivateCode()">ATTIVA</button>
 </div>
 <div id="paywall-message" class="paywall-message"></div>
+<div style="font-size:0.68rem;opacity:0.6;margin-top:10px;text-align:center;color:var(--cream)">Vuoi la versione vera da regalare? <a href="https://www.adultopia.it/products/adultopia?utm_source=app_paywall&utm_medium=reverse_funnel&utm_campaign=app_to_box" target="_blank" style="color:var(--gold);text-decoration:none">Il gioco da tavolo</a></div>
 </div>
 </div>
 
@@ -469,6 +503,38 @@ btn.disabled=false;btn.textContent='Rimuovi';
 }
 // ========== END DEVICE MANAGEMENT ==========
 
+function trialTodayKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function trialGetUsed(){
+var raw=localStorage.getItem(TRIAL_STORAGE_KEY);
+if(!raw)return 0;
+try{var o=JSON.parse(raw);if(o&&typeof o==='object'){return o.d===trialTodayKey()?(o.used||0):0;}}catch(e){}
+var n=parseInt(raw);return isNaN(n)?0:n; // retrocompat vecchio formato intero
+}
+function trialSetUsed(n){try{localStorage.setItem(TRIAL_STORAGE_KEY,JSON.stringify({d:trialTodayKey(),used:n}));}catch(e){}}
+// ========== IL CONTE: mascotte gamemaster (Duolingo-style) ==========
+var conteTimer=null;
+function conteSay(pose,text,ms){
+try{
+var w=document.getElementById('conte'),s=document.getElementById('conteSprite'),b=document.getElementById('conteBubble');
+if(!w||!s||!b)return;
+s.className='conte-sprite '+(pose||'wink');
+b.innerHTML=text||'';
+w.classList.add('on');
+if(conteTimer)clearTimeout(conteTimer);
+conteTimer=setTimeout(function(){w.classList.remove('on')},ms||5000);
+}catch(e){}
+}
+function conteHide(){try{document.getElementById('conte').classList.remove('on');if(conteTimer)clearTimeout(conteTimer);}catch(e){}}
+// Nudge ritorno giornaliero (retention): saluta chi torna con una partita salvata
+function conteDailyNudge(){
+try{
+var k='adultopia_conte_lastvisit',today=trialTodayKey(),last=localStorage.getItem(k);
+localStorage.setItem(k,today);
+if(last&&last!==today&&localStorage.getItem('adultopia_save')){
+setTimeout(function(){conteSay('bow','<b>Bentornati.</b> Il tavolo vi aspettava. Riprendiamo da dove la serata si era fermata?',6000)},1200);
+}
+}catch(e){}
+}
 function paywallInit(){
 // Check license first
 var saved=localStorage.getItem(PAYWALL_STORAGE_KEY);
@@ -485,8 +551,7 @@ localStorage.removeItem(PAYWALL_STORAGE_KEY);
 }catch(e){localStorage.removeItem(PAYWALL_STORAGE_KEY)}
 }
 // Check trial rolls
-var trialSaved=localStorage.getItem(TRIAL_STORAGE_KEY);
-trialRollsUsed=trialSaved?parseInt(trialSaved):0;
+trialRollsUsed=trialGetUsed();
 if(trialRollsUsed>=MAX_FREE_ROLLS){
 paywallShow();
 }else{
@@ -522,8 +587,8 @@ return new Date()<expiry;
 
 function incrementTrialRoll(){
 if(paywallUnlocked)return true;
-trialRollsUsed++;
-localStorage.setItem(TRIAL_STORAGE_KEY,trialRollsUsed.toString());
+trialRollsUsed=trialGetUsed()+1;
+trialSetUsed(trialRollsUsed);
 updateTrialBanner();
 if(trialRollsUsed>=MAX_FREE_ROLLS){
 setTimeout(function(){paywallShow()},1500);
@@ -613,7 +678,7 @@ el.addEventListener('keypress',function(e){if(e.key==='Enter')activateFn()});
 }
 setupCodeFormatter('paywall-code',paywallActivateCode);
 setupCodeFormatter('setup-code',setupVerifyCode);
-paywallInit();
+paywallInit();conteDailyNudge();
 checkUnlockStatus();
 });
 // Toggle unlock form visibility
@@ -679,7 +744,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 
 // ========== END PAYWALL + TRIAL SYSTEM ==========
 
-// Referral: opens external page on app.adultopia.it/regala.html
+// Referral: opens external page on app.adultopia.it/regala-e-ricevi.html
 </script>
 
 <div class="app">
@@ -703,6 +768,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div class="intro-glow"></div>
 <div class="intro-scroll-container">
 <div class="intro-scroll-text">
+<video class="conte-intro-hero" autoplay muted loop playsinline poster="assets/mascot/conte-hero.png"><source src="assets/mascot/conte-intro.mp4" type="video/mp4"></video>
 <p class="intro-final" style="margin-top:0;margin-bottom:25px">Adultopia non è solo un gioco,<br>è un'esperienza.</p>
 <p>Prepara il palcoscenico: luci soffuse, candele profumate, drink e tutto ciò che serve. Una volta iniziato, il mondo esterno smette di esistere.</p>
 <p>Temperatura ideale, atmosfera avvolgente, nessuna distrazione. Sorprendi il partner con tutto già pronto.</p>
@@ -740,7 +806,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 
 <!-- REFERRAL SECTION - Link to external page -->
 <div class="referral-section">
-<a href="https://app.adultopia.it/regala.html" target="_blank" class="referral-link-btn">
+<a href="https://app.adultopia.it/regala-e-ricevi.html" target="_blank" class="referral-link-btn">
 <span class="referral-link-icon">💝</span>
 <span class="referral-link-text">Invita Amici e Guadagna</span>
 <span class="referral-link-arrow">→</span>
@@ -2420,7 +2486,7 @@ if(aiEnabled&&aiApiKey){
 setTimeout(readIntroAI,1500);
 }
 }
-function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata')}
+function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(function(){conteSay('bow','<b>Benvenuti al tavolo.</b> Io sono il Conte, il vostro maestro di cerimonie. Tirate i dadi quando siete pronti... io osservo.',6500)},900)}
 function renderClothes(p){var clothes=getClothes(p.isFemale),h='';for(var i=0;i<5;i++)h+='<span class="cl-item '+(p.clothesArr[i]?'worn':'removed')+'">'+clothes[i]+'</span>';return h}
 function render(){var h='',cls=G.ps.length>2?'pg m':'pg';E('pgrid').className=cls;for(var i=0;i<G.ps.length;i++){var p=G.ps[i],act=i==G.cp;var isTied=tiedData.pid===i&&tiedData.rem>0;var hasBaby=babyData.from===i;h+='<div class="pc'+(act?' act':'')+(p.jail?' jl':'')+(p.out?' out':'')+'">';h+='<div class="pnm">'+(p.isFemale?'👩':'👨')+' '+shortName(p.name)+(isTied?' <span style="background:#d4af37;color:#000;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px">🔗 '+Math.floor(tiedData.rem/60)+':'+(tiedData.rem%60<10?'0':'')+tiedData.rem%60+'</span>':'')+(hasBaby?' <span style="font-size:1.2rem;margin-left:4px">👶</span>':'')+'</div>';h+='<div class="pst"><span>💰'+p.money+'</span><span>📍'+p.pos+(p.jail?'⛓️':'')+'</span></div>';h+='<div class="pds">';var sorted=p.props.slice().sort(function(a,b){return(P2C[a]||0)-(P2C[b]||0)});for(var j=0;j<sorted.length;j++){var pos=sorted[j],pr=G.props[pos];if(pr&&BD[pos]&&BD[pos].cn){var c=PC[BD[pos].cn];if(c)h+='<div class="pd" style="background:'+c.c+';'+(pr.mort?'opacity:0.4;':'')+'position:relative" onclick="openBuildProp('+pos+','+i+')">'+(pr.mort?'🔒':(pr.hotel?'H':(pr.houses||'')))+'</div>'}}h+='</div><div class="pcl" onclick="openCl('+i+')">'+renderClothes(p)+'</div></div>'}E('pgrid').innerHTML=h;E('rnd').textContent='R'+G.round}
 function updTurn(){E('turn').textContent=shortName(G.ps[G.cp].name)}
@@ -2441,7 +2507,7 @@ function openCl(i){clEdit=i;E('clname').textContent=(G.ps[i].isFemale?'👩':'�
 function renderClothEditor(){var p=G.ps[clEdit],clothes=getClothes(p.isFemale),h='';for(var j=0;j<5;j++)h+='<span class="cl-item '+(p.clothesArr[j]?'worn':'removed')+'" onclick="toggleCloth('+j+')" style="cursor:pointer;font-size:2.5rem">'+clothes[j]+'</span>';E('clothItems').innerHTML=h;E('clothM').classList.add('on')}
 function toggleCloth(idx){var p=G.ps[clEdit];p.clothesArr[idx]=p.clothesArr[idx]?0:1;p.clothes=p.clothesArr.reduce(function(a,b){return a+b},0);renderClothEditor()}
 function saveCl(){closeM('clothM');render();saveGame();chkOver()}
-function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;doMove()},750)}
+function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){conteSay('celebrate','<b>Doppio '+v1+'!</b> La fortuna premia gli audaci. Ritirate!',4200)}doMove()},750)}
 function doMove(){var p=G.ps[G.cp],sum=G.dice[0]+G.dice[1];if(p.jail){if(G.dice[0]==G.dice[1]){p.jail=false;p.jailT=0;toast('🎉','Libero!')}else{p.jailT++;if(p.jailT>=3){p.money-=200;p.jail=false;p.jailT=0;toast('💸','-200€')}else{toast('⛓️','In prigione');render();showEnd();return}}}var np=p.pos+sum;var passedVia=false;if(np>40){np-=40;passedVia=true;p.money+=200;removeOneCloth(p);toast('💰','+200€ -1👕');addHist(shortName(p.name)+' passa Via: +200€ -1 vestito');checkOneClothWarning(p);
 // Annuncio vocale passaggio dal Via
 speak(p.name+' passa dal Via! Incassa 200 euro ma deve togliersi un indumento!');
