@@ -287,8 +287,17 @@ color:var(--cream)
 @keyframes conteFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes conteBounce{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-4deg)}70%{transform:scale(.95) rotate(3deg)}100%{transform:scale(1)}}
 @keyframes conteBubble{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
-.conte-intro-hero{width:150px;height:150px;margin:0 auto 12px;display:block;mix-blend-mode:screen;animation:conteFloat 3s ease-in-out infinite}
+.conte-intro-hero{width:150px;height:150px;margin:0 auto 12px;display:block;filter:drop-shadow(0 10px 28px rgba(185,28,28,.4));animation:conteFloat 3s ease-in-out infinite}
 .paywall-conte{width:100px;height:100px;margin:0 auto 6px;background-image:url('assets/mascot/conte-poses.png');background-size:200% 200%;background-position:100% 100%;filter:drop-shadow(0 6px 16px rgba(185,28,28,.5));animation:conteFloat 2.8s ease-in-out infinite}
+.conte-sprite.kiss{background-image:url('assets/mascot/conte-poses2.png');background-position:0% 0%}
+.conte-sprite.drink{background-image:url('assets/mascot/conte-poses2.png');background-position:100% 0%}
+.conte-sprite.zen{background-image:url('assets/mascot/conte-poses2.png');background-position:0% 100%}
+.conte-sprite.hide{background-image:url('assets/mascot/conte-poses2.png');background-position:100% 100%}
+.conte-sprite.money{background-image:url('assets/mascot/conte-poses3.png');background-position:0% 0%}
+.conte-sprite.jail{background-image:url('assets/mascot/conte-poses3.png');background-position:100% 0%}
+.conte-sprite.dance{background-image:url('assets/mascot/conte-poses3.png');background-position:0% 100%}
+.conte-sprite.laugh{background-image:url('assets/mascot/conte-poses3.png');background-position:100% 100%}
+.conte-sprite.react{animation:conteBounce .6s cubic-bezier(.34,1.56,.64,1) 1,conteFloat 2.6s ease-in-out .6s infinite}
 .conte-sprite.talk{background-image:url('assets/mascot/conte-talk.png');background-size:200% 100%;background-position:0% 50%}
 .conte-sprite.talk.open{background-position:100% 50%}
 .trial-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(90deg,var(--ruby),#7f1d1d);padding:4px 10px;z-index:9998;text-align:center;font-size:0.65rem;color:var(--cream);font-weight:600;box-shadow:0 -2px 10px rgba(0,0,0,0.5);line-height:1.2}
@@ -519,12 +528,48 @@ var conteTimer=null;
 // La bocca si apre in base al volume reale della voce (AnalyserNode).
 // Fallback: flap a tempo fisso se l'analyser non e' disponibile (HTMLAudio iOS).
 var conteAnalyser=null,conteAnalyserData=null,conteTalkRAF=null,conteFlapInt=null;
+// Posa a tema per casella: azione divertente abbinata al contenuto.
+var conteLastReact=null;
+function contePoseFor(pos){
+try{
+var t=((typeof FULL_TEXT!=='undefined'&&FULL_TEXT[pos])||'').toLowerCase();
+try{t+=' '+(BD&&BD[pos]&&BD[pos].txt?BD[pos].txt.toLowerCase():'');}catch(e){}
+if(/prigion/.test(t))return 'jail';
+if(/spogliarell|musica|balla/.test(t))return 'dance';
+if(/solletic|senza ridere/.test(t))return 'laugh';
+if(/sorso|beve|bevi|drink|bicchier/.test(t))return 'drink';
+if(/massagg|relax|parcheggio|transito/.test(t))return 'zen';
+if(/bendat|benda|indovina/.test(t))return 'hide';
+if(/bacia|bacio|labbra|lingua|orecchio|mordicchia|abbracc|spalma/.test(t))return 'kiss';
+if(/tassa|paga|ricevi|euro|soldi/.test(t))return 'money';
+if(/probabilit|imprevist|pesca/.test(t))return 'celebrate';
+if(/indument|togli|rimetti|ruba|spoglia/.test(t))return 'dance';
+if(/regola/.test(t))return 'key';
+return 'wink';
+}catch(e){return 'wink'}
+}
+// Reazione a tema: pop con bounce, niente bubble. Il talk-cycle la sostituisce
+// appena parte la voce; a fine frase torna come flourish di chiusura.
+function conteReact(pose,ms){
+try{
+var s=document.getElementById('conteSprite'),wr=document.getElementById('conte'),b=document.getElementById('conteBubble');
+if(!s||!wr)return;
+conteLastReact=pose;
+if(b){b.innerHTML='';b.style.display='none';}
+s.className='conte-sprite '+pose;
+s.style.animation='none';void s.offsetWidth;s.style.animation='';
+s.classList.add('react');
+wr.classList.add('on');
+if(conteTimer)clearTimeout(conteTimer);
+conteTimer=setTimeout(function(){wr.classList.remove('on');if(b)b.style.display='';},ms||2600);
+}catch(e){}
+}
 function conteTalkStart(text,ms){
 try{
 var s=document.getElementById('conteSprite'),b=document.getElementById('conteBubble'),wr=document.getElementById('conte');
 if(!s||!b||!wr)return;
 s.className='conte-sprite talk';
-if(text)b.innerHTML=text;
+if(text){b.innerHTML=text;b.style.display="";}
 wr.classList.add('on');
 if(conteTimer)clearTimeout(conteTimer);
 if(ms)conteTimer=setTimeout(conteTalkStop,ms+800);
@@ -537,7 +582,8 @@ if(conteFlapInt){clearInterval(conteFlapInt);conteFlapInt=null;}
 var s=document.getElementById('conteSprite'),wr=document.getElementById('conte');
 if(s)s.classList.remove('open');
 if(conteTimer)clearTimeout(conteTimer);
-conteTimer=setTimeout(function(){if(wr)wr.classList.remove('on');if(s)s.className='conte-sprite wink';},1400);
+if(s&&conteLastReact){s.className='conte-sprite '+conteLastReact;var b2=document.getElementById('conteBubble');if(b2)b2.style.display='none';}
+conteTimer=setTimeout(function(){if(wr)wr.classList.remove('on');if(s)s.className='conte-sprite wink';var b3=document.getElementById('conteBubble');if(b3)b3.style.display='';conteLastReact=null;},1600);
 }catch(e){}
 }
 function conteLipLoop(){
@@ -822,7 +868,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div class="intro-glow"></div>
 <div class="intro-scroll-container">
 <div class="intro-scroll-text">
-<video class="conte-intro-hero" autoplay muted loop playsinline poster="assets/mascot/conte-hero.png"><source src="assets/mascot/conte-intro.mp4" type="video/mp4"></video>
+<img class="conte-intro-hero" src="assets/mascot/conte-hero.png" alt="Il Conte">
 <p class="intro-final" style="margin-top:0;margin-bottom:25px">Adultopia non è solo un gioco,<br>è un'esperienza.</p>
 <p>Prepara il palcoscenico: luci soffuse, candele profumate, drink e tutto ciò che serve. Una volta iniziato, il mondo esterno smette di esistere.</p>
 <p>Temperatura ideale, atmosfera avvolgente, nessuna distrazione. Sorprendi il partner con tutto già pronto.</p>
@@ -1139,7 +1185,7 @@ async function callOpenAITTS(text, voice) {
         model: 'tts-1',
         voice: voice || narratorVoice,
         input: text,
-        speed: 0.95
+        speed: 1.1
       })
     });
     if (resp.ok) {
@@ -1180,7 +1226,7 @@ async function callOpenAITTS(text, voice) {
         model: 'tts-1',
         voice: voice || narratorVoice,
         input: text,
-        speed: 0.95
+        speed: 1.1
       })
     });
     if (resp.ok) {
@@ -1203,7 +1249,7 @@ var _ttsMemCache = {};                 // key -> Blob (sessione corrente)
 var _ttsDB = null;                     // handle IndexedDB
 var TTS_DB_NAME = 'adultopia-tts';
 var TTS_STORE = 'clips';
-var TTS_CACHE_VERSION = 'v1';          // bump se cambia modello/pipeline pulizia
+var TTS_CACHE_VERSION = 'v2';          // v2: speed 1.1          // bump se cambia modello/pipeline pulizia
 
 function ttsKey(voice, text){ return TTS_CACHE_VERSION + '|' + (voice || narratorVoice) + '|' + text; }
 
@@ -1264,6 +1310,14 @@ async function prewarmBoardNarration(voice){
       if(FULL_TEXT.hasOwnProperty(k)){
         var clean = cleanTextForTTS(sanitizeForTTS(FULL_TEXT[k]));
         if(clean) texts.push(clean);
+        // Prewarm anche il testo composito letto da showChallenge (statico, cache-abile)
+        try{
+          if(typeof BD!=='undefined'&&BD[k]&&BD[k].txt){
+            var det=(typeof DETAILS!=='undefined'&&DETAILS[k])||FULL_TEXT[k];
+            var comp=cleanTextForTTS(sanitizeForTTS(BD[k].txt+'. '+det));
+            if(comp) texts.push(comp);
+          }
+        }catch(e){}
       }
     }
     for(var i = 0; i < texts.length; i++){
@@ -1667,6 +1721,15 @@ var aiAudioPlaying=false;
 var currentAudio=null;
 
 // Ferma tutto l'audio e svuota la coda
+// Taglio netto della voce corrente: nessun handler residuo, coda azzerata.
+// Usato da speak() per la politica latest-wins (la voce non resta mai indietro).
+function cutSpeech(){
+try{if(webAudioSource){webAudioSource.onended=null;try{webAudioSource.stop()}catch(e){}webAudioSource=null;}}catch(e){}
+try{if(currentAudio){currentAudio.onended=null;currentAudio.onerror=null;currentAudio.pause();currentAudio=null;}}catch(e){}
+if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
+aiAudioQueue=[];
+aiAudioPlaying=false;
+}
 function stopAllAudio(){
 aiAudioQueue=[];
 if(currentAudio){
@@ -1979,7 +2042,9 @@ stopIntroAudio();
 if(priority){
 stopAllAudio();
 }
-// Aggiungi il nuovo testo alla coda (senza interrompere)
+// LATEST-WINS: la voce deve raccontare la fase corrente, mai quella passata.
+// Taglia la frase precedente e parte subito con la nuova.
+cutSpeech();
 aiAudioQueue.push(t);
 console.log('speak: aggiunto alla coda, lunghezza coda=',aiAudioQueue.length);
 try{prewarmBoardNarration(narratorVoice);}catch(e){}
@@ -2550,7 +2615,7 @@ if(aiEnabled&&aiApiKey){
 setTimeout(readIntroAI,1500);
 }
 }
-function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(function(){speak('Benvenuti al tavolo! Io sono il Conte, il vostro maestro di cerimonie. Tirate i dadi quando siete pronti.')},900)}
+function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata')}
 function renderClothes(p){var clothes=getClothes(p.isFemale),h='';for(var i=0;i<5;i++)h+='<span class="cl-item '+(p.clothesArr[i]?'worn':'removed')+'">'+clothes[i]+'</span>';return h}
 function render(){var h='',cls=G.ps.length>2?'pg m':'pg';E('pgrid').className=cls;for(var i=0;i<G.ps.length;i++){var p=G.ps[i],act=i==G.cp;var isTied=tiedData.pid===i&&tiedData.rem>0;var hasBaby=babyData.from===i;h+='<div class="pc'+(act?' act':'')+(p.jail?' jl':'')+(p.out?' out':'')+'">';h+='<div class="pnm">'+(p.isFemale?'👩':'👨')+' '+shortName(p.name)+(isTied?' <span style="background:#d4af37;color:#000;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px">🔗 '+Math.floor(tiedData.rem/60)+':'+(tiedData.rem%60<10?'0':'')+tiedData.rem%60+'</span>':'')+(hasBaby?' <span style="font-size:1.2rem;margin-left:4px">👶</span>':'')+'</div>';h+='<div class="pst"><span>💰'+p.money+'</span><span>📍'+p.pos+(p.jail?'⛓️':'')+'</span></div>';h+='<div class="pds">';var sorted=p.props.slice().sort(function(a,b){return(P2C[a]||0)-(P2C[b]||0)});for(var j=0;j<sorted.length;j++){var pos=sorted[j],pr=G.props[pos];if(pr&&BD[pos]&&BD[pos].cn){var c=PC[BD[pos].cn];if(c)h+='<div class="pd" style="background:'+c.c+';'+(pr.mort?'opacity:0.4;':'')+'position:relative" onclick="openBuildProp('+pos+','+i+')">'+(pr.mort?'🔒':(pr.hotel?'H':(pr.houses||'')))+'</div>'}}h+='</div><div class="pcl" onclick="openCl('+i+')">'+renderClothes(p)+'</div></div>'}E('pgrid').innerHTML=h;E('rnd').textContent='R'+G.round}
 function updTurn(){E('turn').textContent=shortName(G.ps[G.cp].name)}
@@ -2571,7 +2636,7 @@ function openCl(i){clEdit=i;E('clname').textContent=(G.ps[i].isFemale?'👩':'�
 function renderClothEditor(){var p=G.ps[clEdit],clothes=getClothes(p.isFemale),h='';for(var j=0;j<5;j++)h+='<span class="cl-item '+(p.clothesArr[j]?'worn':'removed')+'" onclick="toggleCloth('+j+')" style="cursor:pointer;font-size:2.5rem">'+clothes[j]+'</span>';E('clothItems').innerHTML=h;E('clothM').classList.add('on')}
 function toggleCloth(idx){var p=G.ps[clEdit];p.clothesArr[idx]=p.clothesArr[idx]?0:1;p.clothes=p.clothesArr.reduce(function(a,b){return a+b},0);renderClothEditor()}
 function saveCl(){closeM('clothM');render();saveGame();chkOver()}
-function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){conteSay('celebrate','Doppio '+v1+'!',2200);speak('Doppio! La fortuna premia gli audaci. Ritirate!')}doMove()},750)}
+function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(_e){}conteSay('celebrate','Doppio '+v1+'!',2200);speak('Doppio! La fortuna premia gli audaci. Ritirate!')}doMove()},750)}
 function doMove(){var p=G.ps[G.cp],sum=G.dice[0]+G.dice[1];if(p.jail){if(G.dice[0]==G.dice[1]){p.jail=false;p.jailT=0;toast('🎉','Libero!')}else{p.jailT++;if(p.jailT>=3){p.money-=200;p.jail=false;p.jailT=0;toast('💸','-200€')}else{toast('⛓️','In prigione');render();showEnd();return}}}var np=p.pos+sum;var passedVia=false;if(np>40){np-=40;passedVia=true;p.money+=200;removeOneCloth(p);toast('💰','+200€ -1👕');addHist(shortName(p.name)+' passa Via: +200€ -1 vestito');checkOneClothWarning(p);
 // Annuncio vocale passaggio dal Via
 speak(p.name+' passa dal Via! Incassa 200 euro ma deve togliersi un indumento!');
@@ -2583,6 +2648,8 @@ var sp=BD[pos],p=G.ps[G.cp];
 if(!sp){showEnd();return}
 // Legge la casella (tranne carte che vengono annunciate da drawC)
 var fullText=FULL_TEXT[pos]||sp.txt;
+conteReact(contePoseFor(pos));
+try{if(navigator.vibrate)navigator.vibrate(25);}catch(_e){}
 if(sp.t!='ch'){
 // Annuncia casella con nome giocatore
 speak(p.name+' atterra su: '+fullText);
