@@ -1351,6 +1351,20 @@ async function prewarmBoardNarration(voice){
   }catch(e){ console.log('prewarmBoardNarration error:', e); }
 }
 
+// Pre-riscalda le clip "NomeGiocatore." usate come primo segmento della
+// narrazione. Sono 2-4 clip brevi: dopo questo, nome + testo casella
+// partono entrambi dalla cache. Fire-and-forget.
+function prewarmPlayerNames(){
+  try{
+    if(typeof G==='undefined'||!G||!G.ps)return;
+    G.ps.forEach(function(p){
+      if(!p||p.out)return;
+      var t=cleanTextForTTS(sanitizeForTTS(p.name+'.'));
+      if(t)cachedTTS(t,narratorVoice).catch(function(){});
+    });
+  }catch(e){}
+}
+
 
 function getAC(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx}
 
@@ -1503,13 +1517,11 @@ if(audioUnlocked)return;
 audioUnlocked=true;
 // Sblocca AudioContext
 getAC();
-// Se siamo sulla schermata intro, leggi intro vocale
+// Schermata intro: attiva solo la voce AI, NIENTE intro vocale automatica.
+// Il narratore deve restare in silenzio finche' il gioco non inizia davvero.
 if(E('intro').classList.contains('on')){
-// Attiva voce AI se disponibile (separata dal microfono)
 if(aiEnabled&&aiApiKey){
 voiceEnabled=true;
-// Leggi intro vocale (senza musica per non interferire)
-readIntroAI();
 }
 // NON attivare automaticamente il microfono all'avvio
 }
@@ -2051,18 +2063,25 @@ function sanitizeForTTS(text){
 // Aggiunge testo alla coda e avvia processamento
 // I messaggi vengono riprodotti in sequenza senza sovrapposizioni
 function speak(t,priority){
-console.log('speak() chiamato, voiceEnabled=',voiceEnabled,'text=',t?t.substring(0,30):'null');
+// t puo' essere un array di segmenti letti in sequenza come clip separate.
+// Serve per "NomeGiocatore." + testo statico di casella/carta: il nome
+// (variabile) non invalida cosi' la cache del testo fisso, che resta
+// istantaneo dal prewarm.
+var parts=Array.isArray(t)?t.slice():[t];
+var joined=parts.join(' ');
+console.log('speak() chiamato, voiceEnabled=',voiceEnabled,'text=',joined?joined.substring(0,30):'null');
 // Filtro: se il testo matcha la blacklist (annunci turno/aste/ecc), skip.
-if(shouldSkipSpeak(t)){
+if(shouldSkipSpeak(joined)){
   console.log('speak: SKIP by blacklist');
   return;
 }
-// Sanitize pronuncia
-t = sanitizeForTTS(t);
-if(!t) return;
+// Sanitize pronuncia (segmento per segmento)
+parts=parts.map(sanitizeForTTS).filter(function(x){return x&&String(x).trim()});
+if(!parts.length) return;
 if(!voiceEnabled){
 console.log('speak: voiceEnabled=false, bubble muto');
-try{conteSay('wink',t,Math.max(3500,t.length*55));}catch(_e){}
+var bt=parts.join(' ');
+try{conteSay('wink',bt,Math.max(3500,bt.length*55));}catch(_e){}
 return;
 }
 // NON parlare durante strip music
@@ -2079,8 +2098,8 @@ stopAllAudio();
 // LATEST-WINS: la voce deve raccontare la fase corrente, mai quella passata.
 // Taglia la frase precedente e parte subito con la nuova.
 cutSpeech();
-aiAudioQueue.push(t);
-console.log('speak: aggiunto alla coda, lunghezza coda=',aiAudioQueue.length);
+for(var pi=0;pi<parts.length;pi++)aiAudioQueue.push(parts[pi]);
+console.log('speak: aggiunto alla coda, segmenti=',parts.length);
 try{prewarmBoardNarration(narratorVoice);}catch(e){}
 processAudioQueue();
 }
@@ -2597,7 +2616,7 @@ var csC=[{txt:'Rimetti 1 vestito!',act:'claddon'},{txt:'Fai carezze sensuali al 
 var sCh,sCs,chI=0,csI=0;
 function getCh(){return shuf(chC.slice())}
 function saveGame(){try{localStorage.setItem('adultopia_save',JSON.stringify(G))}catch(e){}}
-function loadGame(){try{var s=localStorage.getItem('adultopia_save');if(s){G=JSON.parse(s);if(!G.history)G.history=[];if(!G.createdRules)G.createdRules=[];if(!G.posRules)G.posRules={};sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('intro').classList.remove('on');E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn()}}catch(e){}}
+function loadGame(){try{var s=localStorage.getItem('adultopia_save');if(s){G=JSON.parse(s);if(!G.history)G.history=[];if(!G.createdRules)G.createdRules=[];if(!G.posRules)G.posRules={};sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('intro').classList.remove('on');E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();try{prewarmPlayerNames();}catch(e){}}}catch(e){}}
 function checkSave(){try{var s=localStorage.getItem('adultopia_save');if(s&&JSON.parse(s).ps.length>0)E('loadBtn').style.display='block'}catch(e){}}
 function saveAndExit(){saveGame();toast('💾','Salvato!');stopBgMusic();stopSpeaking();stopIntroAudio();E('game').classList.remove('on');E('setup').classList.remove('on');E('intro').classList.add('on');E('hdrBtns').style.display='none'}
 function confirmSave(){saveGame();toast('💾','Salvato!')}
@@ -2685,10 +2704,11 @@ var fullText=FULL_TEXT[pos]||sp.txt;
 conteReact(contePoseFor(pos));
 try{if(navigator.vibrate)navigator.vibrate(25);}catch(_e){}
 if(sp.t!='ch'&&sp.t!='prop'){
-// Niente nome giocatore, niente titolo: legge solo l'azione della casella.
+// Nome giocatore + azione della casella (mai il titolo). Il nome viaggia
+// come clip separata: il testo fisso resta in cache dal prewarm.
 // Le proprieta' non parlano qui: la voce arriva da showChallenge/showPosRule
 // (altrimenti il latest-wins taglierebbe subito questa frase).
-speak(fullText);
+speak([p.name+'.',fullText]);
 }
 if(sp.t=='via'){toast('💰','Casella Via! Incassi 200€!');showEnd()}
 else if(sp.t=='prop'){landProp(pos)}
@@ -2771,12 +2791,12 @@ function skipTimer(){if(TM.main)clearInterval(TM.main);TM.main=null;if(TM.gm){cl
 function updTPD(s){E('tpDisp').textContent=(Math.floor(s/60)+'').padStart(2,'0')+':'+(s%60+'').padStart(2,'0')}
 function landProp(pos){pend={pos:pos};var sp=BD[pos];if(!sp||!sp.cn)return showEnd();var c=PC[sp.cn];if(!c)return showEnd();if(G.props[pos]){var pr=G.props[pos],owner=pr.owner;if(owner==G.cp||pr.mort){if(sp.special=='regola'){if(G.posRules&&G.posRules[pos]){showPosRule(pos);return}else{openCreateRule();return}}else showChallenge(sp,pos);return}var rent=calcRent(pos);G.ps[G.cp].money-=rent;G.ps[owner].money+=rent;toast('💸','-'+rent+'€');addHist(shortName(G.ps[G.cp].name)+' paga '+rent+'€');
 render();saveGame();chkOver();if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}else{/* Proprieta' libera: prima si esegue la sfida della casella, l'acquisto arriva dopo (vedi showEnd) */pendBuy={pos:pos,c:c,sp:sp};if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}}
-function showPosRule(pos){var rule=G.posRules[pos];toast('📜','Regola attiva!');speak(rule);var h='<div class="challenge-card"><h3>📜 REGOLA CASELLA</h3><p style="font-size:1.1rem;margin:15px 0">'+rule+'</p></div>';E('challengeCard').innerHTML=h;E('challengeTarget').innerHTML='';pendChallenge=null;E('challengeM').classList.add('on')}
+function showPosRule(pos){var rule=G.posRules[pos];toast('📜','Regola attiva!');speak([G.ps[G.cp].name+'.',rule]);var h='<div class="challenge-card"><h3>📜 REGOLA CASELLA</h3><p style="font-size:1.1rem;margin:15px 0">'+rule+'</p></div>';E('challengeCard').innerHTML=h;E('challengeTarget').innerHTML='';pendChallenge=null;E('challengeM').classList.add('on')}
 function showBuyProp(pos,c,sp){var h='<div class="pcard"><div class="pcard-h" style="background:'+c.c+';color:'+(c.c=='#FFD700'||c.c=='#87CEEB'||c.c=='#FFA500'?'#000':'#fff')+'">#'+sp.cn+' '+c.g.toUpperCase()+'</div><div class="pcard-b"><div><span>💰 Prezzo</span><span><strong>'+c.p+'€</strong></span></div><div><span>Affitto</span><span>'+c.r+'€</span></div><div><span>Set completo</span><span>'+c.rs+'€</span></div><div><span>1 Casa</span><span>'+c.r1+'€</span></div><div><span>2 Case</span><span>'+c.r2+'€</span></div><div><span>Hotel</span><span>'+c.rh+'€</span></div></div></div>';h+='<div class="players-money" style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;margin:10px 0"><strong style="display:block;margin-bottom:8px">💵 Soldi disponibili:</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';G.ps.forEach(function(p,i){if(p)h+='<div style="background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:6px;text-align:center">'+(p.isFemale?'👩':'👨')+' '+shortName(p.name)+'<br><strong style="color:#22c55e">'+p.money+'€</strong></div>'});h+='</div></div>';E('buyPropCard').innerHTML=h;var btns='<button class="mb p" '+(G.ps[G.cp].money>=c.p?'':'disabled')+' onclick="buyProp()">💰 ACQUISTA '+c.p+'€</button><button class="mb o" onclick="auctionProp()">🔨 ASTA</button>';E('buyPropBtns').innerHTML=btns;E('buyPropM').classList.add('on')}
 function buyProp(){var pos=pend.pos,sp=BD[pos],c=PC[sp.cn],p=G.ps[G.cp];if(p.money<c.p)return;p.money-=c.p;p.props.push(pos);G.props[pos]={owner:G.cp,houses:0,hotel:false,mort:false};toast('🏠','Acquistato!');addHist(shortName(p.name)+' compra #'+sp.cn);closeM('buyPropM');render();saveGame();showEnd()}
 function auctionProp(){closeM('buyPropM');startAuct(pend.pos)}
 function backToBuy(){closeM('auctM');var pos=pend.pos;var sp=BD[pos];if(!sp||!sp.cn)return showEnd();var c=PC[sp.cn];showBuyProp(pos,c,sp)}
-function showChallenge(sp,pos){if(sp.special=='regola'){openCreateRule();return}if(sp.special=='obv'){try{speak(FULL_TEXT[pos]||sp.txt);}catch(e){}showSugg('obbligo');return}pendChallenge={sp:sp,pos:pos};var d=DETAILS[pos]||FULL_TEXT[pos]||sp.txt;var h='<div class="challenge-card"><h3>✦ '+sp.txt+' ✦</h3><p>'+d+'</p></div>';E('challengeCard').innerHTML=h;/* Narratore: legge solo l'azione, mai il titolo della casella */try{speak(d);}catch(e){console.log('speak challenge error:',e);}var oth=getOth();if(sp.nt&&oth.length>1){var tg='<p style="color:rgba(245,245,220,0.7);margin-bottom:10px;text-align:center">Scegli partner:</p><div class="target-grid">';oth.forEach(function(o){tg+='<button class="target-btn" onclick="selChallengeTarget('+o.id+')">'+(o.isFemale?'👩':'👨')+' '+shortName(o.name)+'</button>'});tg+='</div>';E('challengeTarget').innerHTML=tg;selT=null}else if(sp.nt&&oth.length==1){selT=oth[0].id;E('challengeTarget').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.7)">Con: <strong>'+shortName(oth[0].name)+'</strong></p>'}else{selT=null;E('challengeTarget').innerHTML=''}E('challengeM').classList.add('on')}
+function showChallenge(sp,pos){if(sp.special=='regola'){openCreateRule();return}if(sp.special=='obv'){try{speak([G.ps[G.cp].name+'.',FULL_TEXT[pos]||sp.txt]);}catch(e){}showSugg('obbligo');return}pendChallenge={sp:sp,pos:pos};var d=DETAILS[pos]||FULL_TEXT[pos]||sp.txt;var h='<div class="challenge-card"><h3>✦ '+sp.txt+' ✦</h3><p>'+d+'</p></div>';E('challengeCard').innerHTML=h;/* Narratore: nome giocatore + azione, mai il titolo della casella */try{speak([G.ps[G.cp].name+'.',d]);}catch(e){console.log('speak challenge error:',e);}var oth=getOth();if(sp.nt&&oth.length>1){var tg='<p style="color:rgba(245,245,220,0.7);margin-bottom:10px;text-align:center">Scegli partner:</p><div class="target-grid">';oth.forEach(function(o){tg+='<button class="target-btn" onclick="selChallengeTarget('+o.id+')">'+(o.isFemale?'👩':'👨')+' '+shortName(o.name)+'</button>'});tg+='</div>';E('challengeTarget').innerHTML=tg;selT=null}else if(sp.nt&&oth.length==1){selT=oth[0].id;E('challengeTarget').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.7)">Con: <strong>'+shortName(oth[0].name)+'</strong></p>'}else{selT=null;E('challengeTarget').innerHTML=''}E('challengeM').classList.add('on')}
 function selChallengeTarget(id){selT=id;document.querySelectorAll('#challengeTarget .target-btn').forEach(function(b){b.classList.remove('sel')});event.target.classList.add('sel');setTimeout(function(){execChallenge()},300)}
 function execChallenge(){warmupAudioForIOS();var ch=pendChallenge;if(!ch){closeM('challengeM');showEnd();return}var sp=ch.sp,pos=ch.pos;if(sp.nt&&selT==null&&getOth().length>1){toast('❌','Scegli partner');return}closeM('challengeM');var tn=selT!=null&&G.ps[selT]?G.ps[selT].name:'partner';
 // Casella 22: Rimetti vestito
@@ -2825,10 +2845,10 @@ speak('Aggiudicato! '+w.name+' vince l\'asta per '+a.bid+' euro!');
 }
 }}render();saveGame();showEnd();return}a.pi++;while(a.passed.indexOf(a.ps[a.pi%a.ps.length])>=0)a.pi++;updAuct()}
 function drawC(type){var card,ctype,icon,p=G.ps[G.cp];if(type=='ch'){if(chI>=sCh.length){sCh=getCh();chI=0}card=sCh[chI++];ctype='imp';icon='⚡'}else{if(csI>=sCs.length){sCs=shuf(csC.slice());csI=0}card=sCs[csI++];ctype='prb';icon='🎴'}if(!card)return showEnd();curC=JSON.parse(JSON.stringify(card));selT=null;E('cdp').className='card-face '+ctype;E('cicon').textContent=icon;E('ctype').textContent=ctype=='imp'?'IMPREVISTI':'PROBABILITÀ';E('ctxt').textContent=card.txt;
-// Legge solo il testo della carta: niente annuncio del tipo, niente nome.
+// Nome giocatore + testo della carta: niente annuncio del tipo di carta.
 // (NON leggere carte strip - la musica bloccherebbe)
 if(!card.strip){
-speak(card.txt);
+speak([p.name+'.',card.txt]);
 }
 var oth=getOth();if(card.nt&&oth.length>1){var h='<p style="text-align:center;color:rgba(245,245,220,0.7);margin-bottom:8px">Scegli:</p><div class="target-grid">';oth.forEach(function(o){h+='<button class="target-btn" onclick="selCT('+o.id+')">'+(o.isFemale?'👩':'👨')+' '+shortName(o.name)+'</button>'});h+='</div>';E('ctargs').innerHTML=h}else if(card.nt&&oth.length==1){selT=oth[0].id;E('ctargs').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.7)">Con: '+shortName(oth[0].name)+'</p>'}else E('ctargs').innerHTML='';E('cardM').classList.add('on')}
 function selCT(id){selT=id;document.querySelectorAll('#ctargs .target-btn').forEach(function(b){b.classList.remove('sel')});event.target.classList.add('sel')}
@@ -3602,11 +3622,10 @@ aiEnabled=true;
 voiceEnabled=true;
 }
 origStartGame();
-// Presenta i giocatori
-var names=G.ps.map(function(p){return p.name}).join(' e ');
-var endings=['Vinca il più sexy!','Vinca il più seducente!','Che vinca chi osa di più!','Buona fortuna e pochi vestiti!'];
-var ending=endings[Math.floor(Math.random()*endings.length)];
-speak(names+', siete pronti? '+ending+' Tocca a '+G.ps[0].name+'!');
+// Niente annunci del narratore all'avvio partita: la voce parte solo
+// dalla prima azione di gioco. Nel frattempo pre-riscalda le clip dei
+// nomi giocatori usate dalla narrazione con nome.
+try{prewarmPlayerNames();}catch(e){}
 };
 
 // Ferma intro quando si clicca Inizia
