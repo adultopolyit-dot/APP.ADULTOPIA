@@ -944,7 +944,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <h4>💰 PREPARAZIONE</h4><p>Ogni giocatore riceve 1500€ e indossa 4 indumenti (senza scarpe).</p>
 <h4>🎲 TURNO</h4><p>Tira i dadi e muovi. Esegui l'azione della casella. Il turno passa automaticamente dopo ogni sfida.</p>
 <h4 style="color:var(--ruby)">⚠️ IMPORTANTE</h4><p>Ogni giocatore inizia con <strong>4 indumenti</strong> (senza scarpe). Quando li finisci, sei eliminato!</p>
-<h4>🏠 PROPRIETÀ</h4><p>Compra se libera. Se occupata, paga l'affitto ed esegui la sfida.</p>
+<h4>🏠 PROPRIETÀ</h4><p>Esegui prima la sfida della casella. Poi, se è libera, puoi comprarla. Se è occupata, paghi l'affitto.</p>
 <h4>🏗️ COSTRUZIONI</h4><p>Con set completo costruisci case (max 2) e hotel.</p>
 <h4>📝 REGOLE CREATE</h4><p>Valgono per tutta la partita!</p>
 
@@ -1175,18 +1175,27 @@ async function callOpenAI(endpoint, body) {
 }
 
 // Helper per TTS via Netlify Functions
-async function callOpenAITTS(text, voice) {
+// Modello gpt-4o-mini-tts con "instructions": voce calda, fluente e seducente,
+// dizione italiana curata (il vecchio tts-1 suonava robotico e sbagliava
+// pronunce). Fallback automatico a tts-1 se il modello non fosse disponibile;
+// MAI su errori di quota (riprovare sarebbe inutile e costoso).
+var TTS_MODEL = 'gpt-4o-mini-tts';
+var TTS_INSTRUCTIONS = 'Parla in italiano perfetto, con dizione impeccabile: ogni parola pronunciata in modo chiaro, mai storpiata. Voce calda, avvolgente e seducente: sei il maestro di cerimonie di un gioco intimo per coppie. Ritmo fluido e naturale, leggermente brioso, pause brevi ed eleganti. Tono complice, con un sorriso nella voce. Mai robotico, mai monotono, mai cantilenante.';
+
+function ttsPayload(text, voice, model) {
+  var p = { endpoint: 'audio/speech', model: model, voice: voice || narratorVoice, input: text };
+  if (model === 'gpt-4o-mini-tts') { p.instructions = TTS_INSTRUCTIONS; }
+  else { p.speed = 1.1; }   // speed non supportato da gpt-4o-mini-tts: il ritmo lo detta instructions
+  return p;
+}
+
+async function callOpenAITTS(text, voice, model) {
+  model = model || TTS_MODEL;
   if (aiApiKey === 'NETLIFY_FUNCTIONS') {
     var resp = await fetch('/.netlify/functions/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endpoint: 'audio/speech',
-        model: 'tts-1',
-        voice: voice || narratorVoice,
-        input: text,
-        speed: 1.1
-      })
+      body: JSON.stringify(ttsPayload(text, voice, model))
     });
     if (resp.ok) {
       var data = await resp.json();
@@ -1195,6 +1204,7 @@ async function callOpenAITTS(text, voice) {
       if (!data.audio) {
         var msg = data.error || 'TTS response senza audio';
         console.error('TTS error:', msg, 'code:', data.code);
+        if (model !== 'tts-1' && !/quota/i.test(msg)) { return callOpenAITTS(text, voice, 'tts-1'); }
         if (typeof toast === 'function') toast('⚠️', 'Narratore ' + msg.substring(0, 50));
         throw new Error(msg);
       }
@@ -1206,32 +1216,29 @@ async function callOpenAITTS(text, voice) {
       return new Blob([bytes], { type: 'audio/mpeg' });
     }
     // Errore HTTP: leggi il JSON di errore se disponibile
-    try {
-      var err = await resp.json();
-      var em = err.error || 'TTS HTTP ' + resp.status;
-      console.error('TTS HTTP error:', em, 'code:', err.code);
-      if (typeof toast === 'function') toast('⚠️', 'Narratore ' + em.substring(0, 50));
-      throw new Error(em);
-    } catch (e) {
-      throw new Error('TTS failed: HTTP ' + resp.status);
+    var em = 'TTS HTTP ' + resp.status, ec = 'tts_error';
+    try { var err = await resp.json(); em = err.error || em; ec = err.code || ec; } catch (e) {}
+    console.error('TTS HTTP error:', em, 'code:', ec);
+    if (model !== 'tts-1' && ec !== 'insufficient_quota' && !/quota/i.test(em)) {
+      return callOpenAITTS(text, voice, 'tts-1');
     }
+    if (typeof toast === 'function') toast('⚠️', 'Narratore ' + em.substring(0, 50));
+    throw new Error(em);
   } else {
+    var payload = ttsPayload(text, voice, model);
+    delete payload.endpoint;
     var resp = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + aiApiKey
       },
-      body: JSON.stringify({
-        model: 'tts-1',
-        voice: voice || narratorVoice,
-        input: text,
-        speed: 1.1
-      })
+      body: JSON.stringify(payload)
     });
     if (resp.ok) {
       return resp.blob();
     }
+    if (model !== 'tts-1') { return callOpenAITTS(text, voice, 'tts-1'); }
     throw new Error('TTS failed');
   }
 }
@@ -1249,7 +1256,7 @@ var _ttsMemCache = {};                 // key -> Blob (sessione corrente)
 var _ttsDB = null;                     // handle IndexedDB
 var TTS_DB_NAME = 'adultopia-tts';
 var TTS_STORE = 'clips';
-var TTS_CACHE_VERSION = 'v2';          // v2: speed 1.1          // bump se cambia modello/pipeline pulizia
+var TTS_CACHE_VERSION = 'v3';          // v3: gpt-4o-mini-tts voce seducente          // bump se cambia modello/pipeline pulizia
 
 function ttsKey(voice, text){ return TTS_CACHE_VERSION + '|' + (voice || narratorVoice) + '|' + text; }
 
@@ -1310,16 +1317,28 @@ async function prewarmBoardNarration(voice){
       if(FULL_TEXT.hasOwnProperty(k)){
         var clean = cleanTextForTTS(sanitizeForTTS(FULL_TEXT[k]));
         if(clean) texts.push(clean);
-        // Prewarm anche il testo composito letto da showChallenge (statico, cache-abile)
+        // Prewarm anche il testo letto da showChallenge (dettaglio senza titolo)
         try{
-          if(typeof BD!=='undefined'&&BD[k]&&BD[k].txt){
-            var det=(typeof DETAILS!=='undefined'&&DETAILS[k])||FULL_TEXT[k];
-            var comp=cleanTextForTTS(sanitizeForTTS(BD[k].txt+'. '+det));
+          if(typeof DETAILS!=='undefined'&&DETAILS[k]){
+            var comp=cleanTextForTTS(sanitizeForTTS(DETAILS[k]));
             if(comp) texts.push(comp);
           }
         }catch(e){}
       }
     }
+    // Prewarm anche le carte Imprevisti e Probabilita': ora la voce legge
+    // solo il testo della carta (statico), quindi e' tutto cache-abile.
+    try{
+      var cards=[];
+      if(typeof csC!=='undefined')cards=cards.concat(csC);
+      if(typeof getCh==='function')cards=cards.concat(getCh());
+      for(var ci=0;ci<cards.length;ci++){
+        if(cards[ci]&&cards[ci].txt&&!cards[ci].strip){
+          var ct=cleanTextForTTS(sanitizeForTTS(cards[ci].txt));
+          if(ct)texts.push(ct);
+        }
+      }
+    }catch(e){}
     for(var i = 0; i < texts.length; i++){
       var key = ttsKey(voice, texts[i]);
       if(_ttsMemCache[key]) continue;
@@ -2009,8 +2028,23 @@ function sanitizeForTTS(text){
   t = t.replace(/\bn°\s*/gi, 'numero ');
   // Trattino fra parole letto male: lo trasformo in pausa breve
   t = t.replace(/(\S)\s*[\u2013\u2014]\s*(\S)/g, '$1, $2');
+  // PAROLE TUTTE MAIUSCOLE: il TTS a volte le compita lettera per lettera.
+  // Le riporto a Capitalizzato (titoli caselle, nomi giocatori scritti in caps).
+  // (le sigle senza vocali, es. BDSM, restano maiuscole: compitarle e' giusto)
+  t = t.replace(/\b([A-Z\u00c0-\u00d6\u00d8-\u00de]{3,})\b/g, function(w){ return /[AEIOU\u00c0\u00c8\u00c9\u00cc\u00d2\u00d9]/.test(w) ? w.charAt(0) + w.slice(1).toLowerCase() : w; });
+  // Moltiplicatori e simboli letti male
+  t = t.replace(/\bx\s?(\d+)\b/gi, ' per $1');
+  t = t.replace(/(\d+)\s*%/g, '$1 per cento');
+  // Puntini di sospensione, parentesi e virgolette: diventano pause naturali
+  t = t.replace(/\.{3,}|\u2026/g, ', ');
+  t = t.replace(/[()\[\]{}"\u00ab\u00bb\u201c\u201d]/g, ', ');
+  // Ripulisci virgole doppie create dalle sostituzioni
+  t = t.replace(/(\s*,\s*)+/g, ', ');
+  t = t.replace(/,\s*([.!?])/g, '$1');
   // Normalizza spazi
   t = t.replace(/\s+/g, ' ').trim();
+  // Niente virgole orfane a inizio/fine frase
+  t = t.replace(/^,\s*/, '').replace(/\s*,\s*$/, '');
   return t;
 }
 
@@ -2552,7 +2586,7 @@ speak(warning);
 }
 var G={np:0,ps:[],cp:0,dice:[0,0],props:{},round:1,auct:null,mode:'n',createdRules:[],posRules:{},history:[]};
 var TM={main:null,gm:null,bg:null};
-var curC=null,selT=null,pend=null,clEdit=null,pendAct=null,pendChallenge=null,pendRulePos=null;
+var curC=null,selT=null,pend=null,clEdit=null,pendAct=null,pendChallenge=null,pendRulePos=null,pendBuy=null;
 var PC={1:{c:'#8B4513',r:2,rs:4,r1:10,r2:30,rh:90,p:60,m:30,hc:50,g:'marrone'},2:{c:'#8B4513',r:4,rs:8,r1:20,r2:60,rh:180,p:60,m:30,hc:50,g:'marrone'},3:{c:'#87CEEB',r:6,rs:12,r1:30,r2:90,rh:270,p:100,m:50,hc:50,g:'azzurro'},4:{c:'#87CEEB',r:6,rs:12,r1:30,r2:90,rh:270,p:100,m:50,hc:50,g:'azzurro'},5:{c:'#87CEEB',r:8,rs:16,r1:40,r2:100,rh:300,p:120,m:50,hc:50,g:'azzurro'},6:{c:'#FF69B4',r:10,rs:20,r1:50,r2:150,rh:450,p:140,m:70,hc:100,g:'rosa'},7:{c:'#FF69B4',r:10,rs:20,r1:50,r2:150,rh:450,p:140,m:70,hc:100,g:'rosa'},8:{c:'#FF69B4',r:12,rs:24,r1:60,r2:180,rh:500,p:160,m:70,hc:100,g:'rosa'},9:{c:'#FFA500',r:14,rs:28,r1:70,r2:200,rh:550,p:180,m:90,hc:100,g:'arancione'},10:{c:'#FFA500',r:14,rs:28,r1:70,r2:200,rh:550,p:180,m:90,hc:100,g:'arancione'},11:{c:'#FFA500',r:18,rs:36,r1:90,r2:250,rh:700,p:200,m:90,hc:100,g:'arancione'},12:{c:'#dc2626',r:18,rs:36,r1:90,r2:270,rh:400,p:220,m:110,hc:150,g:'rosso'},13:{c:'#dc2626',r:18,rs:36,r1:90,r2:270,rh:400,p:220,m:110,hc:150,g:'rosso'},14:{c:'#dc2626',r:18,rs:36,r1:90,r2:270,rh:400,p:240,m:120,hc:150,g:'rosso'},15:{c:'#FFD700',r:22,rs:44,r1:110,r2:330,rh:800,p:260,m:130,hc:150,g:'giallo'},16:{c:'#FFD700',r:22,rs:44,r1:110,r2:330,rh:800,p:260,m:130,hc:150,g:'giallo'},17:{c:'#FFD700',r:24,rs:48,r1:120,r2:360,rh:850,p:280,m:140,hc:150,g:'giallo'},18:{c:'#22c55e',r:26,rs:52,r1:130,r2:390,rh:900,p:300,m:150,hc:200,g:'verde'},19:{c:'#22c55e',r:26,rs:52,r1:130,r2:390,rh:900,p:300,m:150,hc:200,g:'verde'},20:{c:'#22c55e',r:28,rs:56,r1:150,r2:450,rh:1000,p:320,m:160,hc:200,g:'verde'},21:{c:'#1E90FF',r:35,rs:70,r1:175,r2:500,rh:1000,p:350,m:200,hc:200,g:'blu'},22:{c:'#1E90FF',r:50,rs:100,r1:200,r2:600,rh:1400,p:400,m:200,hc:200,g:'blu'}};
 var P2C={2:1,4:2,7:3,9:4,10:5,12:6,14:7,15:8,17:9,19:10,20:11,22:12,24:13,25:14,27:15,29:16,30:17,32:18,33:19,35:20,38:21,40:22};
 var C2P={};for(var k in P2C)C2P[P2C[k]]=parseInt(k);
@@ -2650,9 +2684,11 @@ if(!sp){showEnd();return}
 var fullText=FULL_TEXT[pos]||sp.txt;
 conteReact(contePoseFor(pos));
 try{if(navigator.vibrate)navigator.vibrate(25);}catch(_e){}
-if(sp.t!='ch'){
-// Annuncia casella con nome giocatore
-speak(p.name+' atterra su: '+fullText);
+if(sp.t!='ch'&&sp.t!='prop'){
+// Niente nome giocatore, niente titolo: legge solo l'azione della casella.
+// Le proprieta' non parlano qui: la voce arriva da showChallenge/showPosRule
+// (altrimenti il latest-wins taglierebbe subito questa frase).
+speak(fullText);
 }
 if(sp.t=='via'){toast('💰','Casella Via! Incassi 200€!');showEnd()}
 else if(sp.t=='prop'){landProp(pos)}
@@ -2734,13 +2770,13 @@ updTPD(rem)
 function skipTimer(){if(TM.main)clearInterval(TM.main);TM.main=null;if(TM.gm){clearInterval(TM.gm);TM.gm=null}stopTimerEntertainment();stopSpeaking();E('timerPop').classList.remove('on');document.body.classList.remove('timer-active');stopStripMusic();if(window._tCb)window._tCb();else showEnd()}
 function updTPD(s){E('tpDisp').textContent=(Math.floor(s/60)+'').padStart(2,'0')+':'+(s%60+'').padStart(2,'0')}
 function landProp(pos){pend={pos:pos};var sp=BD[pos];if(!sp||!sp.cn)return showEnd();var c=PC[sp.cn];if(!c)return showEnd();if(G.props[pos]){var pr=G.props[pos],owner=pr.owner;if(owner==G.cp||pr.mort){if(sp.special=='regola'){if(G.posRules&&G.posRules[pos]){showPosRule(pos);return}else{openCreateRule();return}}else showChallenge(sp,pos);return}var rent=calcRent(pos);G.ps[G.cp].money-=rent;G.ps[owner].money+=rent;toast('💸','-'+rent+'€');addHist(shortName(G.ps[G.cp].name)+' paga '+rent+'€');
-render();saveGame();chkOver();if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}else{showBuyProp(pos,c,sp)}}
+render();saveGame();chkOver();if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}else{/* Proprieta' libera: prima si esegue la sfida della casella, l'acquisto arriva dopo (vedi showEnd) */pendBuy={pos:pos,c:c,sp:sp};if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}}
 function showPosRule(pos){var rule=G.posRules[pos];toast('📜','Regola attiva!');speak(rule);var h='<div class="challenge-card"><h3>📜 REGOLA CASELLA</h3><p style="font-size:1.1rem;margin:15px 0">'+rule+'</p></div>';E('challengeCard').innerHTML=h;E('challengeTarget').innerHTML='';pendChallenge=null;E('challengeM').classList.add('on')}
 function showBuyProp(pos,c,sp){var h='<div class="pcard"><div class="pcard-h" style="background:'+c.c+';color:'+(c.c=='#FFD700'||c.c=='#87CEEB'||c.c=='#FFA500'?'#000':'#fff')+'">#'+sp.cn+' '+c.g.toUpperCase()+'</div><div class="pcard-b"><div><span>💰 Prezzo</span><span><strong>'+c.p+'€</strong></span></div><div><span>Affitto</span><span>'+c.r+'€</span></div><div><span>Set completo</span><span>'+c.rs+'€</span></div><div><span>1 Casa</span><span>'+c.r1+'€</span></div><div><span>2 Case</span><span>'+c.r2+'€</span></div><div><span>Hotel</span><span>'+c.rh+'€</span></div></div></div>';h+='<div class="players-money" style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;margin:10px 0"><strong style="display:block;margin-bottom:8px">💵 Soldi disponibili:</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';G.ps.forEach(function(p,i){if(p)h+='<div style="background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:6px;text-align:center">'+(p.isFemale?'👩':'👨')+' '+shortName(p.name)+'<br><strong style="color:#22c55e">'+p.money+'€</strong></div>'});h+='</div></div>';E('buyPropCard').innerHTML=h;var btns='<button class="mb p" '+(G.ps[G.cp].money>=c.p?'':'disabled')+' onclick="buyProp()">💰 ACQUISTA '+c.p+'€</button><button class="mb o" onclick="auctionProp()">🔨 ASTA</button>';E('buyPropBtns').innerHTML=btns;E('buyPropM').classList.add('on')}
-function buyProp(){var pos=pend.pos,sp=BD[pos],c=PC[sp.cn],p=G.ps[G.cp];if(p.money<c.p)return;p.money-=c.p;p.props.push(pos);G.props[pos]={owner:G.cp,houses:0,hotel:false,mort:false};toast('🏠','Acquistato!');addHist(shortName(p.name)+' compra #'+sp.cn);closeM('buyPropM');render();saveGame();showChallenge(sp,pos)}
+function buyProp(){var pos=pend.pos,sp=BD[pos],c=PC[sp.cn],p=G.ps[G.cp];if(p.money<c.p)return;p.money-=c.p;p.props.push(pos);G.props[pos]={owner:G.cp,houses:0,hotel:false,mort:false};toast('🏠','Acquistato!');addHist(shortName(p.name)+' compra #'+sp.cn);closeM('buyPropM');render();saveGame();showEnd()}
 function auctionProp(){closeM('buyPropM');startAuct(pend.pos)}
 function backToBuy(){closeM('auctM');var pos=pend.pos;var sp=BD[pos];if(!sp||!sp.cn)return showEnd();var c=PC[sp.cn];showBuyProp(pos,c,sp)}
-function showChallenge(sp,pos){if(sp.special=='regola'){openCreateRule();return}if(sp.special=='obv'){showSugg('obbligo');return}pendChallenge={sp:sp,pos:pos};var d=DETAILS[pos]||FULL_TEXT[pos]||sp.txt;var h='<div class="challenge-card"><h3>✦ '+sp.txt+' ✦</h3><p>'+d+'</p></div>';E('challengeCard').innerHTML=h;/* FIX narratore: legge la sfida della casella proprieta' (prima non lo faceva) */try{speak(sp.txt+'. '+d);}catch(e){console.log('speak challenge error:',e);}var oth=getOth();if(sp.nt&&oth.length>1){var tg='<p style="color:rgba(245,245,220,0.7);margin-bottom:10px;text-align:center">Scegli partner:</p><div class="target-grid">';oth.forEach(function(o){tg+='<button class="target-btn" onclick="selChallengeTarget('+o.id+')">'+(o.isFemale?'👩':'👨')+' '+shortName(o.name)+'</button>'});tg+='</div>';E('challengeTarget').innerHTML=tg;selT=null}else if(sp.nt&&oth.length==1){selT=oth[0].id;E('challengeTarget').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.7)">Con: <strong>'+shortName(oth[0].name)+'</strong></p>'}else{selT=null;E('challengeTarget').innerHTML=''}E('challengeM').classList.add('on')}
+function showChallenge(sp,pos){if(sp.special=='regola'){openCreateRule();return}if(sp.special=='obv'){try{speak(FULL_TEXT[pos]||sp.txt);}catch(e){}showSugg('obbligo');return}pendChallenge={sp:sp,pos:pos};var d=DETAILS[pos]||FULL_TEXT[pos]||sp.txt;var h='<div class="challenge-card"><h3>✦ '+sp.txt+' ✦</h3><p>'+d+'</p></div>';E('challengeCard').innerHTML=h;/* Narratore: legge solo l'azione, mai il titolo della casella */try{speak(d);}catch(e){console.log('speak challenge error:',e);}var oth=getOth();if(sp.nt&&oth.length>1){var tg='<p style="color:rgba(245,245,220,0.7);margin-bottom:10px;text-align:center">Scegli partner:</p><div class="target-grid">';oth.forEach(function(o){tg+='<button class="target-btn" onclick="selChallengeTarget('+o.id+')">'+(o.isFemale?'👩':'👨')+' '+shortName(o.name)+'</button>'});tg+='</div>';E('challengeTarget').innerHTML=tg;selT=null}else if(sp.nt&&oth.length==1){selT=oth[0].id;E('challengeTarget').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.7)">Con: <strong>'+shortName(oth[0].name)+'</strong></p>'}else{selT=null;E('challengeTarget').innerHTML=''}E('challengeM').classList.add('on')}
 function selChallengeTarget(id){selT=id;document.querySelectorAll('#challengeTarget .target-btn').forEach(function(b){b.classList.remove('sel')});event.target.classList.add('sel');setTimeout(function(){execChallenge()},300)}
 function execChallenge(){warmupAudioForIOS();var ch=pendChallenge;if(!ch){closeM('challengeM');showEnd();return}var sp=ch.sp,pos=ch.pos;if(sp.nt&&selT==null&&getOth().length>1){toast('❌','Scegli partner');return}closeM('challengeM');var tn=selT!=null&&G.ps[selT]?G.ps[selT].name:'partner';
 // Casella 22: Rimetti vestito
@@ -2787,12 +2823,12 @@ callGameMaster(w.name+' vince l\'asta per '+a.bid+' euro!','Celebra il vincitore
 }else{
 speak('Aggiudicato! '+w.name+' vince l\'asta per '+a.bid+' euro!');
 }
-if(sp&&sp.special=='regola'&&a.bidr==G.cp)return openCreateRule();if(sp&&a.bidr==G.cp)return showChallenge(sp,a.pos)}}render();saveGame();showEnd();return}a.pi++;while(a.passed.indexOf(a.ps[a.pi%a.ps.length])>=0)a.pi++;updAuct()}
+}}render();saveGame();showEnd();return}a.pi++;while(a.passed.indexOf(a.ps[a.pi%a.ps.length])>=0)a.pi++;updAuct()}
 function drawC(type){var card,ctype,icon,p=G.ps[G.cp];if(type=='ch'){if(chI>=sCh.length){sCh=getCh();chI=0}card=sCh[chI++];ctype='imp';icon='⚡'}else{if(csI>=sCs.length){sCs=shuf(csC.slice());csI=0}card=sCs[csI++];ctype='prb';icon='🎴'}if(!card)return showEnd();curC=JSON.parse(JSON.stringify(card));selT=null;E('cdp').className='card-face '+ctype;E('cicon').textContent=icon;E('ctype').textContent=ctype=='imp'?'IMPREVISTI':'PROBABILITÀ';E('ctxt').textContent=card.txt;
-// Annuncia la pesca della carta (NON leggere carte strip - la musica bloccherebbe)
+// Legge solo il testo della carta: niente annuncio del tipo, niente nome.
+// (NON leggere carte strip - la musica bloccherebbe)
 if(!card.strip){
-var cardType=ctype=='imp'?'Imprevisti':'Probabilità';
-speak(p.name+' pesca una carta '+cardType+'. '+card.txt);
+speak(card.txt);
 }
 var oth=getOth();if(card.nt&&oth.length>1){var h='<p style="text-align:center;color:rgba(245,245,220,0.7);margin-bottom:8px">Scegli:</p><div class="target-grid">';oth.forEach(function(o){h+='<button class="target-btn" onclick="selCT('+o.id+')">'+(o.isFemale?'👩':'👨')+' '+shortName(o.name)+'</button>'});h+='</div>';E('ctargs').innerHTML=h}else if(card.nt&&oth.length==1){selT=oth[0].id;E('ctargs').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.7)">Con: '+shortName(oth[0].name)+'</p>'}else E('ctargs').innerHTML='';E('cardM').classList.add('on')}
 function selCT(id){selT=id;document.querySelectorAll('#ctargs .target-btn').forEach(function(b){b.classList.remove('sel')});event.target.classList.add('sel')}
@@ -2800,11 +2836,14 @@ function execCard(){var card=curC,p=G.ps[G.cp];if(!card||!p){closeM('cardM');ret
 function showEnd(){
 // Safety: assicurati che i dadi non rimangano bloccati
 E('rbtn').disabled=false;
+// Prima l'azione, poi l'acquisto: la sfida della proprieta' libera e' appena
+// finita, ora si apre la scheda di acquisto.
+if(pendBuy){var pb=pendBuy;pendBuy=null;showBuyProp(pb.pos,pb.c,pb.sp);return}
 // Cambio turno automatico dopo le sfide
 setTimeout(function(){endTurn()},800);
 }
 function startBgTimer(sec,name,pid){var rem=sec;tiedData={pid:pid,rem:rem};toast('⏱️',name+' '+Math.floor(sec/60)+' minuti');render();if(TM.bg)clearInterval(TM.bg);TM.bg=setInterval(function(){if(--rem<=0){clearInterval(TM.bg);TM.bg=null;tiedData={pid:null,rem:0};render();toast('⏰','Tempo scaduto!');try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[800,600,800].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0.4,ctx.currentTime+i*0.35);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.35+0.3);o.start(ctx.currentTime+i*0.35);o.stop(ctx.currentTime+i*0.35+0.3)})}catch(e){}}else{tiedData.rem=rem;render()}},1000)}
-function endTurn(){E('rbtn').disabled=false;selT=null;pendChallenge=null;var prev=G.cp;do{G.cp=(G.cp+1)%G.ps.length}while(G.ps[G.cp].out&&getAct().length>1);if(G.cp==0&&prev!=0)G.round++;render();updTurn();saveGame();announceNewTurn();}
+function endTurn(){E('rbtn').disabled=false;selT=null;pendChallenge=null;pendBuy=null;var prev=G.cp;do{G.cp=(G.cp+1)%G.ps.length}while(G.ps[G.cp].out&&getAct().length>1);if(G.cp==0&&prev!=0)G.round++;render();updTurn();saveGame();announceNewTurn();}
 // Frasi calme e sensuali per annunciare il turno
 var TURNO_FRASI=[
 'Tocca a te, ',
@@ -2829,7 +2868,7 @@ function removeOneFromAll(){G.ps.forEach(function(p){if(p&&!p.out)removeOneCloth
 function chkOverPlayer(p){if(!p||p.out)return;if(p.money<=0||p.clothes<=0){p.out=true;if(p.props)p.props.forEach(function(pos){delete G.props[pos]});p.props=[];var act=getAct();if(act.length<=1){E('goI').textContent='🏆';E('goI').className='win-anim';E('goMsg').textContent='🎉 VINCITORE! 🎉';E('goMsg').className='win-text';E('goP').textContent=act[0]?act[0].name:'';E('goB').textContent='🔄 NUOVA PARTITA';E('goB').onclick=restart;if(act[0])speak(act[0].name+' vince la partita!');setTimeout(launchConfetti,100)}else{E('goI').textContent='💔';E('goI').className='';E('goMsg').textContent=p.money<=0?'BANCAROTTA!':'ELIMINATO!';E('goMsg').className='';E('goP').textContent=p.name;E('goB').textContent='CONTINUA';E('goB').onclick=function(){closeM('goM')};speak(p.name+' è stato eliminato!')}E('goM').classList.add('on');render();saveGame()}}
 function chkOver(){for(var i=0;i<G.ps.length;i++){if(G.ps[i]&&!G.ps[i].out&&(G.ps[i].money<=0||G.ps[i].clothes<=0)){chkOverPlayer(G.ps[i]);break}}}
 function handleGO(){getAct().length<=1?restart():closeM('goM')}
-function restart(){closeM('goM');if(TM.main)clearInterval(TM.main);if(TM.bg)clearInterval(TM.bg);tiedData={pid:null,rem:0};babyData={from:null,to:null};stopStripMusic();stopBgMusic();try{localStorage.removeItem('adultopia_save')}catch(e){}E('game').classList.remove('on');E('setup').classList.remove('on');E('intro').classList.add('on');E('hdrBtns').style.display='none';E('pnames').classList.remove('on');E('loadBtn').style.display='none';document.querySelectorAll('#setup .po').forEach(function(el){el.classList.remove('sel')});G={np:0,ps:[],cp:0,dice:[0,0],props:{},round:1,auct:null,mode:'n',createdRules:[],posRules:{},history:[]}}
+function restart(){closeM('goM');if(TM.main)clearInterval(TM.main);if(TM.bg)clearInterval(TM.bg);tiedData={pid:null,rem:0};babyData={from:null,to:null};pendBuy=null;stopStripMusic();stopBgMusic();try{localStorage.removeItem('adultopia_save')}catch(e){}E('game').classList.remove('on');E('setup').classList.remove('on');E('intro').classList.add('on');E('hdrBtns').style.display='none';E('pnames').classList.remove('on');E('loadBtn').style.display='none';document.querySelectorAll('#setup .po').forEach(function(el){el.classList.remove('sel')});G={np:0,ps:[],cp:0,dice:[0,0],props:{},round:1,auct:null,mode:'n',createdRules:[],posRules:{},history:[]}}
 function showBuild(){var p=G.ps[G.cp],h='';if(!p||!p.props||!p.props.length){E('buildL').innerHTML='<p style="text-align:center;color:rgba(245,245,220,0.5)">Nessuna proprietà</p>';E('buildM').classList.add('on');return}var sorted=p.props.slice().sort(function(a,b){return(P2C[a]||0)-(P2C[b]||0)});for(var i=0;i<sorted.length;i++){var pos=sorted[i];if(!BD[pos]||!BD[pos].cn)continue;var c=PC[BD[pos].cn],pr=G.props[pos];if(!c||!pr)continue;var hasSet=ownsSet(p.id,c.c);var mortVal=Math.floor(c.p/2);h+='<div style="background:var(--velvet);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid rgba(185,28,28,0.2);opacity:'+(pr.mort?'0.6':'1')+'"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span>#'+BD[pos].cn+' '+c.g+' ('+c.p+'€)'+(pr.mort?' 🔒':'')+'</span><span style="width:18px;height:18px;border-radius:4px;background:'+c.c+'"></span></div><div style="color:rgba(245,245,220,0.5);margin-bottom:10px;font-size:0.8rem">'+(pr.mort?'IPOTECATA':(pr.hotel?'🏨 Hotel':pr.houses?'🏠 x'+pr.houses:'Terreno'))+(hasSet&&!pr.mort?' ✅':'')+'</div><div style="display:flex;gap:8px;flex-wrap:wrap">';if(!pr.mort){h+='<button class="mb p" style="flex:1;padding:10px;margin:0" '+(canBH(pos)?'':'disabled')+' onclick="buildH('+pos+')">🏠 '+c.hc+'€</button><button class="mb o" style="flex:1;padding:10px;margin:0" '+(canBHt(pos)?'':'disabled')+' onclick="buildHt('+pos+')">🏨 '+c.hc+'€</button><button class="mb s" style="flex:1;padding:10px;margin:0" '+(pr.houses||pr.hotel?'disabled':'')+' onclick="mortProp('+pos+')">🔒 +'+mortVal+'€</button>'}else{h+='<button class="mb gr" style="flex:1;padding:10px;margin:0" '+(p.money>=mortVal?'':'disabled')+' onclick="unmortProp('+pos+')">🔓 -'+mortVal+'€</button>'}h+='</div></div>'}E('buildL').innerHTML=h;E('buildM').classList.add('on')}
 function buildH(pos){if(!G.props[pos])return;var c=PC[BD[pos].cn];G.ps[G.cp].money-=c.hc;G.props[pos].houses++;toast('🏠','Costruito!');addHist(shortName(G.ps[G.cp].name)+' +casa');render();saveGame();showBuild()}
 function buildHt(pos){if(!G.props[pos])return;var c=PC[BD[pos].cn];G.ps[G.cp].money-=c.hc;G.props[pos].houses=0;G.props[pos].hotel=true;toast('🏨','Hotel!');addHist(shortName(G.ps[G.cp].name)+' +hotel');render();saveGame();showBuild()}
