@@ -2032,8 +2032,13 @@ function sanitizeForTTS(text){
   // Rimuovi asterischi, trattini multipli, simboli markdown
   t = t.replace(/\*+/g, '').replace(/_+/g, ' ').replace(/#+/g, '');
   // Pronuncia: abbreviazioni di tempo lette per esteso (solo se abbreviate)
+  t = t.replace(/\b1\s*min\b\.?/gi, 'un minuto');
+  t = t.replace(/\b1\s*sec\b\.?/gi, 'un secondo');
   t = t.replace(/(\d+)\s*min\b\.?/gi, '$1 minuti');
   t = t.replace(/(\d+)\s*sec\b\.?/gi, '$1 secondi');
+  // "1 minuto" letto "uno minuto" dal TTS: scrivo l'articolo giusto per esteso
+  t = t.replace(/\b1\s+(minuto|secondo|vestito|indumento|sorso|bacio|drink|schiaffo|abbraccio|giro|turno|euro)\b/gi, 'un $1');
+  t = t.replace(/\b1\s+(carta|casa|volta|regola|casella|proprietà|mano|penitenza)(?![a-zà-ù])/gi, 'una $1');
   // Abbreviazioni comuni
   t = t.replace(/\becc\.?\b/gi, 'eccetera');
   t = t.replace(/\bvs\.?\b/gi, 'contro');
@@ -2864,26 +2869,9 @@ setTimeout(function(){endTurn()},800);
 }
 function startBgTimer(sec,name,pid){var rem=sec;tiedData={pid:pid,rem:rem};toast('⏱️',name+' '+Math.floor(sec/60)+' minuti');render();if(TM.bg)clearInterval(TM.bg);TM.bg=setInterval(function(){if(--rem<=0){clearInterval(TM.bg);TM.bg=null;tiedData={pid:null,rem:0};render();toast('⏰','Tempo scaduto!');try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[800,600,800].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0.4,ctx.currentTime+i*0.35);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.35+0.3);o.start(ctx.currentTime+i*0.35);o.stop(ctx.currentTime+i*0.35+0.3)})}catch(e){}}else{tiedData.rem=rem;render()}},1000)}
 function endTurn(){E('rbtn').disabled=false;selT=null;pendChallenge=null;pendBuy=null;var prev=G.cp;do{G.cp=(G.cp+1)%G.ps.length}while(G.ps[G.cp].out&&getAct().length>1);if(G.cp==0&&prev!=0)G.round++;render();updTurn();saveGame();announceNewTurn();}
-// Frasi calme e sensuali per annunciare il turno
-var TURNO_FRASI=[
-'Tocca a te, ',
-'È il tuo momento, ',
-'Ora tocca a te, ',
-'Avanti, ',
-'Il turno passa a ',
-'Prego, '
-];
-
-function announceNewTurn(){
-var p=G.ps[G.cp];
-if(!p)return;
-var frase=TURNO_FRASI[Math.floor(Math.random()*TURNO_FRASI.length)];
-var msg=frase+p.name+'.';
-if(p.jail){
-msg+=' Sei ancora in prigione.';
-}
-speak(msg);
-}
+// Richiesta utente: il narratore NON annuncia mai il turno del giocatore.
+// Il cambio turno resta visivo (header + colore pedina), la voce tace.
+function announceNewTurn(){}
 function removeOneFromAll(){G.ps.forEach(function(p){if(p&&!p.out)removeOneCloth(p)});addHist('🔥 Tutti -1 vestito');render();saveGame();G.ps.forEach(function(p){if(p&&!p.out)checkOneClothWarning(p)});G.ps.forEach(function(p){if(p)chkOverPlayer(p)})}
 function chkOverPlayer(p){if(!p||p.out)return;if(p.money<=0||p.clothes<=0){p.out=true;if(p.props)p.props.forEach(function(pos){delete G.props[pos]});p.props=[];var act=getAct();if(act.length<=1){E('goI').textContent='🏆';E('goI').className='win-anim';E('goMsg').textContent='🎉 VINCITORE! 🎉';E('goMsg').className='win-text';E('goP').textContent=act[0]?act[0].name:'';E('goB').textContent='🔄 NUOVA PARTITA';E('goB').onclick=restart;if(act[0])speak(act[0].name+' vince la partita!');setTimeout(launchConfetti,100)}else{E('goI').textContent='💔';E('goI').className='';E('goMsg').textContent=p.money<=0?'BANCAROTTA!':'ELIMINATO!';E('goMsg').className='';E('goP').textContent=p.name;E('goB').textContent='CONTINUA';E('goB').onclick=function(){closeM('goM')};speak(p.name+' è stato eliminato!')}E('goM').classList.add('on');render();saveGame()}}
 function chkOver(){for(var i=0;i<G.ps.length;i++){if(G.ps[i]&&!G.ps[i].out&&(G.ps[i].money<=0||G.ps[i].clothes<=0)){chkOverPlayer(G.ps[i]);break}}}
