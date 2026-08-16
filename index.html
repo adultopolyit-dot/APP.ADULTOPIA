@@ -14,6 +14,19 @@
 <meta name="msapplication-navbutton-color" content="#0a0a0a">
 <meta name="msapplication-TileColor" content="#b91c1c">
 <meta name="description" content="ADULTOPIA - Il gioco da tavolo per adulti">
+<!-- Anteprima social: l'app gira sul passaparola, il link condiviso su
+     WhatsApp o in DM non puo' arrivare nudo. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Adultopia">
+<meta property="og:title" content="Adultopia: il gioco che accende le serate di coppia">
+<meta property="og:description" content="Un dado, una sfida, voi due. Il narratore legge, voi eseguite. I primi lanci sono gratis, si gioca stasera.">
+<meta property="og:url" content="https://app.adultopia.it/">
+<meta property="og:image" content="https://adultopia.it/assets/photos/hero-box.webp">
+<meta property="og:locale" content="it_IT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Adultopia: il gioco che accende le serate di coppia">
+<meta name="twitter:description" content="Un dado, una sfida, voi due. I primi lanci sono gratis.">
+<meta name="twitter:image" content="https://adultopia.it/assets/photos/hero-box.webp">
 <!-- PWA Icons -->
 <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
@@ -24,6 +37,8 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -131,6 +146,13 @@ color:var(--cream)
 .gh{display:flex;align-items:center;gap:5px;padding:8px 8px;background:linear-gradient(145deg,var(--velvet2),var(--velvet));border-radius:12px;margin-bottom:8px;flex-shrink:0;box-shadow:var(--sh);border:1px solid rgba(185,28,28,0.2)}
 .trn{background:linear-gradient(145deg,var(--ruby2),var(--ruby));padding:6px 10px;border-radius:8px;font-weight:700;font-size:0.8rem;white-space:nowrap;letter-spacing:1px}
 .rnd{background:var(--velvet);padding:5px 8px;border-radius:6px;font-size:0.75rem;white-space:nowrap;border:1px solid rgba(185,28,28,0.3);font-weight:600}
+/* Streak serate consecutive: la fiamma vive solo se la serata e' viva. */
+.stk{display:inline-flex;align-items:center;gap:3px;background:var(--velvet);padding:5px 8px;border-radius:6px;font-size:0.75rem;white-space:nowrap;border:1px solid rgba(212,175,55,0.35);font-weight:600;color:var(--gold)}
+.stk::before{content:'🔥';font-size:0.85rem;line-height:1}
+.stk b{color:var(--cream);font-weight:800}
+.stk.up{animation:stkPop .6s cubic-bezier(.34,1.56,.64,1)}
+@keyframes stkPop{0%{transform:scale(1)}45%{transform:scale(1.35);border-color:var(--gold)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.stk.up{animation:none}}
 .gbs{display:flex;gap:3px;margin-left:auto}
 .gbs button{padding:8px 10px;border:none;border-radius:8px;background:linear-gradient(145deg,var(--velvet3),var(--velvet));color:var(--cream);font-size:0.9rem;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4);border:1px solid rgba(185,28,28,0.2)}
 .gbs button:active{transform:scale(0.93)}
@@ -245,7 +267,7 @@ color:var(--cream)
 
 /* ========== PAYWALL STYLES - ADULTOPIA BRAND ========== */
 .paywall-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--velvet);display:flex;justify-content:center;align-items:center;z-index:99999;font-family:'Montserrat',sans-serif;padding-top:env(safe-area-inset-top,0px)}
-.paywall-container{max-width:400px;width:92%;padding:15px;text-align:center;max-height:calc(100vh - env(safe-area-inset-top,0px) - 20px);overflow-y:auto}
+.paywall-container{position:relative;max-width:400px;width:92%;padding:15px;text-align:center;max-height:calc(100vh - env(safe-area-inset-top,0px) - 20px);overflow-y:auto}
 .paywall-header{margin-bottom:12px}
 .paywall-logo{max-width:220px;margin:0 auto 15px;display:block;filter:drop-shadow(0 4px 15px rgba(185,28,28,0.5))}
 .paywall-subtitle{color:var(--cream);font-size:0.95rem;opacity:0.8;margin:0}
@@ -273,6 +295,17 @@ color:var(--cream)
 .paywall-message{margin-top:10px;padding:8px;border-radius:8px;font-size:0.75rem;display:none}
 .paywall-message.error{display:block;background:rgba(185,28,28,0.2);color:var(--ruby3);border:1px solid rgba(185,28,28,0.3)}
 .paywall-message.success{display:block;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
+/* Via d'uscita dal paywall: invito, non muro. */
+.paywall-close{position:absolute;top:4px;right:6px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(185,28,28,.35);background:rgba(10,5,5,.72);color:rgba(245,245,220,.7);font-size:1.5rem;line-height:1;cursor:pointer;z-index:3;transition:color .25s ease,border-color .25s ease,transform .25s ease}
+.paywall-close:hover{color:var(--cream);border-color:var(--ruby);transform:rotate(90deg)}
+.paywall-close:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* Alternativa gratuita: passa parola invece di pagare. */
+.paywall-share-btn{display:block;width:100%;max-width:320px;margin:0 auto;background:transparent;border:1px dashed rgba(212,175,55,.55);border-radius:10px;padding:11px 14px;color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:background .25s ease,border-color .25s ease}
+.paywall-share-btn:hover{background:rgba(212,175,55,.08);border-style:solid}
+.paywall-share-btn:active{transform:translateY(1px)}
+/* L'email non e' un codice: niente maiuscolo forzato ne' monospace. */
+#paywall-email{text-transform:none;letter-spacing:0;font-family:'Montserrat',sans-serif;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){.paywall-close:hover{transform:none}}
 /* ========== IL CONTE - MASCOTTE GAMEMASTER (sprite 2x2: bow|celebrate / wink|key) ========== */
 .conte-wrap{position:fixed;left:10px;bottom:44px;z-index:9997;display:none;align-items:flex-end;gap:8px;pointer-events:none}
 .conte-wrap.on{display:flex;animation:conteIn .45s cubic-bezier(.34,1.56,.64,1) both}
@@ -301,6 +334,12 @@ color:var(--cream)
 .conte-sprite.talk{background-image:url('assets/mascot/conte-talk.png');background-size:200% 100%;background-position:0% 50%}
 .conte-sprite.talk.open{background-position:100% 50%}
 .trial-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(90deg,var(--ruby),#7f1d1d);padding:4px 10px;z-index:9998;text-align:center;font-size:0.65rem;color:var(--cream);font-weight:600;box-shadow:0 -2px 10px rgba(0,0,0,0.5);line-height:1.2}
+/* Film di vittoria a schermo pieno, sopra ai modali ma sotto al paywall. */
+.victory-film{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:99998;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease,visibility .45s;background:#0a0505}
+.victory-film.on{opacity:1;visibility:visible}
+/* Lanci esauriti: il banner diventa la porta d'ingresso, non un cartello. */
+.trial-banner.spent{background:linear-gradient(90deg,#4a1010,#2a0808);cursor:pointer;padding:6px 10px}
+.trial-banner.spent u{color:var(--gold);text-decoration-thickness:1px;text-underline-offset:2px}
 .trial-banner span{color:var(--gold)}
 body.has-trial-banner .dc{padding-bottom:calc(35px + env(safe-area-inset-bottom,0px))!important}
 body.has-trial-banner .intro-cta{padding-bottom:35px}
@@ -387,6 +426,7 @@ window.OPENAI_API_KEY='NETLIFY_FUNCTIONS';
 <!-- ========== PAYWALL ========== -->
 <div id="adultopia-paywall" class="paywall-overlay" style="display:none">
 <div class="paywall-container">
+<button class="paywall-close" onclick="paywallDismiss()" aria-label="Chiudi e torna al tavolo">&times;</button>
 <div class="paywall-header">
 <div class="paywall-conte"></div>
 <h2 style="color:var(--cream);font-size:1.15rem;margin:0 0 5px 0;font-weight:700;line-height:1.2">Riscoprite l'intimità<br><span style="color:var(--ruby)">giocando insieme</span></h2>
@@ -423,9 +463,15 @@ window.OPENAI_API_KEY='NETLIFY_FUNCTIONS';
 </div>
 </div>
 <div style="font-size:0.7rem;color:var(--cream);opacity:0.82;margin:2px 0 8px;text-align:center">🛡️ 3 serate di prova. Se non si accende niente fra voi due, ti rimborsiamo.</div>
-<div class="paywall-divider"><span>Hai un codice di attivazione?</span></div>
+<div class="paywall-divider"><span>Non stasera?</span></div>
+<button class="paywall-share-btn" onclick="paywallShareUnlock()">Passate parola, +3 lanci per stasera</button>
+<div class="paywall-divider"><span>Avete già acquistato?</span></div>
 <div class="paywall-code-input">
-<input type="text" id="paywall-code" placeholder="AP-1234-5678" maxlength="25" autocomplete="off">
+<input type="email" id="paywall-email" placeholder="email dell'acquisto" autocomplete="email" inputmode="email" spellcheck="false">
+<button id="paywall-email-btn" onclick="paywallVerifyEmail()">SBLOCCA</button>
+</div>
+<div class="paywall-code-input" style="margin-top:6px">
+<input type="text" id="paywall-code" placeholder="oppure codice AP-1234-5678" maxlength="25" autocomplete="off">
 <button onclick="paywallActivateCode()">ATTIVA</button>
 </div>
 <div id="paywall-message" class="paywall-message"></div>
@@ -522,6 +568,66 @@ try{var o=JSON.parse(raw);if(o&&typeof o==='object'){return o.d===trialTodayKey(
 var n=parseInt(raw);return isNaN(n)?0:n; // retrocompat vecchio formato intero
 }
 function trialSetUsed(n){try{localStorage.setItem(TRIAL_STORAGE_KEY,JSON.stringify({d:trialTodayKey(),used:n}));}catch(e){}}
+// Bonus condivisione: chi invita la serata a qualcun altro si guadagna altri
+// lanci per oggi. E' l'alternativa gratuita al paywall (e il motore virale).
+var SHARE_BONUS_KEY='adultopia_share_bonus';
+var SHARE_BONUS_ROLLS=3;
+function shareBonusGet(){try{var o=JSON.parse(localStorage.getItem(SHARE_BONUS_KEY)||'{}');return o.d===trialTodayKey()?(o.n||0):0}catch(e){return 0}}
+function shareBonusSet(n){try{localStorage.setItem(SHARE_BONUS_KEY,JSON.stringify({d:trialTodayKey(),n:n}))}catch(e){}}
+// Tetto dei lanci di oggi: base + eventuale bonus condivisione.
+function trialMax(){return MAX_FREE_ROLLS+(shareBonusGet()?SHARE_BONUS_ROLLS:0)}
+
+// ========== STREAK: serate consecutive ==========
+// Il motivo per riaprire domani. Conta le sere in cui si e' giocato davvero
+// (almeno un lancio), non le aperture dell'app.
+var STREAK_KEY='adultopia_streak';
+function streakGet(){
+try{var s=JSON.parse(localStorage.getItem(STREAK_KEY));if(s&&typeof s==='object')return {last:s.last||null,n:s.n||0,best:s.best||0}}catch(e){}
+return {last:null,n:0,best:0};
+}
+function streakDayDiff(a,b){
+try{
+var pa=String(a).split('-'),pb=String(b).split('-');
+var da=new Date(+pa[0],+pa[1]-1,+pa[2]),db=new Date(+pb[0],+pb[1]-1,+pb[2]);
+return Math.round((db-da)/86400000);
+}catch(e){return 99}
+}
+function streakRender(grew){
+var el=document.getElementById('streak'),n=document.getElementById('streakN');
+if(!el||!n)return;
+var s=streakGet();
+// Sotto le due serate non e' ancora una striscia: mostrarla la sminuisce.
+if(s.n<2){el.style.display='none';return}
+el.style.display='inline-flex';
+n.textContent=s.n;
+el.title=s.n+' serate consecutive (record: '+s.best+')';
+if(grew){el.classList.remove('up');void el.offsetWidth;el.classList.add('up')}
+}
+function streakTouch(){
+var s=streakGet(),today=trialTodayKey();
+if(s.last===today){streakRender(false);return s}
+if(s.last){var d=streakDayDiff(s.last,today);s.n=(d===1)?s.n+1:1}else{s.n=1}
+s.last=today;
+if(s.n>s.best)s.best=s.n;
+try{localStorage.setItem(STREAK_KEY,JSON.stringify(s))}catch(e){}
+streakRender(s.n>1);
+streakCelebrate(s.n);
+return s;
+}
+// Le tappe si festeggiano, le sere normali no: se applaudi sempre non applaudi mai.
+function streakCelebrate(n){
+if(n<2)return;
+var msg=null;
+if(n===2)msg='<b>Due sere di fila.</b> Sta diventando un\'abitudine, e mi piace.';
+else if(n===3)msg='<b>Tre serate consecutive.</b> Il tavolo comincia a conoscervi.';
+else if(n===7)msg='<b>Una settimana intera.</b> Voi due avete capito come si fa.';
+else if(n===14)msg='<b>Due settimane.</b> A questo punto sono io che imparo da voi.';
+else if(n===30)msg='<b>Trenta serate.</b> Non e\' piu\' un gioco, e\' il vostro rituale.';
+else if(n%10===0)msg='<b>'+n+' serate di fila.</b> Tenete acceso, mi raccomando.';
+if(!msg)return;
+setTimeout(function(){try{conteSay('celebrate',msg,5200)}catch(e){}},900);
+try{if(navigator.vibrate)navigator.vibrate([30,50,30])}catch(e){}
+}
 // ========== IL CONTE: mascotte gamemaster (Duolingo-style) ==========
 var conteTimer=null;
 // ========== LIP-SYNC: il Conte parla quando parla il narratore ==========
@@ -624,6 +730,15 @@ if(conteTimer)clearTimeout(conteTimer);
 conteTimer=setTimeout(function(){w.classList.remove('on')},ms||5000);
 }catch(e){}
 }
+// I fogli delle pose extra sono background-image: il browser li scarica solo
+// al primo uso, e la prima volta il Conte compariva vuoto per mezzo secondo.
+// Qui li tiro giu' in sottofondo a partita avviata, quando la rete e' libera.
+var _contePosesWarmed=false;
+function precacheContePoses(){
+if(_contePosesWarmed)return;
+_contePosesWarmed=true;
+['assets/mascot/conte-poses2.png','assets/mascot/conte-poses3.png','assets/mascot/conte-talk.png'].forEach(function(u){try{var i=new Image();i.src=u}catch(e){}});
+}
 function conteHide(){try{document.getElementById('conte').classList.remove('on');if(conteTimer)clearTimeout(conteTimer);}catch(e){}}
 // Nudge ritorno giornaliero (retention): saluta chi torna con una partita salvata
 function conteDailyNudge(){
@@ -652,11 +767,9 @@ localStorage.removeItem(PAYWALL_STORAGE_KEY);
 }
 // Check trial rolls
 trialRollsUsed=trialGetUsed();
-if(trialRollsUsed>=MAX_FREE_ROLLS){
-paywallShow();
-}else{
+// All'avvio non si sbatte la porta in faccia: l'app resta visibile e il
+// banner ricorda che i lanci sono finiti. Il paywall torna al primo tiro.
 showTrialBanner();
-}
 return false;
 }
 
@@ -687,13 +800,16 @@ return new Date()<expiry;
 
 function incrementTrialRoll(){
 if(paywallUnlocked)return true;
-trialRollsUsed=trialGetUsed()+1;
+var used=trialGetUsed(),max=trialMax();
+// Il controllo sta PRIMA dell'incremento: i lanci promessi devono essere
+// tutti giocabili. Prima l'ultimo click bruciava il lancio senza tirare i dadi.
+if(used>=max){paywallShow();return false}
+trialRollsUsed=used+1;
 trialSetUsed(trialRollsUsed);
 updateTrialBanner();
-if(trialRollsUsed>=MAX_FREE_ROLLS){
-setTimeout(function(){paywallShow()},1500);
-return false;
-}
+// Ultimo lancio consumato: la serata finisce comunque (tiro, sfida, timer),
+// l'invito arriva dopo, non spegne la luce a meta' azione.
+if(trialRollsUsed>=max){setTimeout(function(){if(!paywallUnlocked)paywallShow()},7000)}
 return true;
 }
 
@@ -713,9 +829,19 @@ document.body.classList.remove('has-trial-banner');
 }
 
 function updateTrialBanner(){
-var remaining=MAX_FREE_ROLLS-trialRollsUsed;
-var el=document.getElementById('trial-remaining');
-if(el)el.textContent=remaining>0?remaining:0;
+var remaining=trialMax()-trialRollsUsed;
+var b=document.getElementById('trial-banner');
+if(!b)return;
+if(remaining>0){
+b.classList.remove('spent');
+b.onclick=null;
+b.innerHTML='🎲 Gratis oggi: <span id="trial-remaining">'+remaining+'</span> '+(remaining===1?'lancio rimasto':'lanci rimasti');
+}else{
+// Stato esaurito: il banner diventa la porta d'ingresso, non un muro.
+b.classList.add('spent');
+b.innerHTML='Lanci di oggi finiti. <u>Continuate la serata</u>';
+b.onclick=function(){paywallShow()};
+}
 }
 
 async function paywallActivateCode(){
@@ -744,6 +870,56 @@ paywallMsg('Errore di connessione. Riprova.','error');
 }
 }
 
+// Sblocco con l'email dell'acquisto. Prima esisteva solo la strada del codice:
+// chi comprava su Shopify e non riceveva un codice restava chiuso fuori
+// dopo aver pagato. La function verify-subscription interroga gli ordini.
+async function paywallVerifyEmail(){
+var input=document.getElementById('paywall-email');
+var email=((input&&input.value)||'').trim();
+if(!email||email.indexOf('@')<1){paywallMsg('Inserisci l\'email che hai usato per l\'acquisto','error');return}
+var btn=document.getElementById('paywall-email-btn');
+if(btn){btn.disabled=true;btn.textContent='...'}
+paywallMsg('Cerco il tuo ordine...','');
+try{
+var res=await fetch('/.netlify/functions/verify-subscription',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({email:email})
+});
+var data=await res.json();
+if(data.valid&&data.hasAccess){
+var license={email:data.email||email,plan:data.plan||'subscription',type:'subscription',planName:data.planName||'Abbonamento',expiresAt:data.expiresAt||null,activated_at:new Date().toISOString()};
+localStorage.setItem(PAYWALL_STORAGE_KEY,JSON.stringify(license));
+paywallUnlocked=true;
+paywallMsg('Bentornati.'+(data.daysRemaining?' Accesso attivo per '+data.daysRemaining+' giorni.':' Accesso sbloccato.'),'success');
+setTimeout(function(){paywallHide();hideTrialBanner()},1300);
+}else{
+paywallMsg(data.error||'Nessun ordine trovato per questa email','error');
+}
+}catch(e){
+paywallMsg('Errore di connessione. Riprova.','error');
+}
+if(btn){btn.disabled=false;btn.textContent='SBLOCCA'}
+}
+
+// Alternativa gratuita al paywall: chi passa parola si guadagna la serata.
+// Una volta al giorno, +3 lanci. E' anche il motore virale dell'app.
+async function paywallShareUnlock(){
+if(shareBonusGet()){paywallMsg('Bonus già usato oggi. Domani altri lanci gratis.','error');return}
+var txt='Stiamo giocando ad Adultopia, il gioco che accende le serate di coppia. I primi lanci sono gratis.';
+var url='https://app.adultopia.it/?utm_source=app_share&utm_medium=referral&utm_campaign=share_bonus';
+var done=false;
+try{
+if(navigator.share){await navigator.share({title:'Adultopia',text:txt,url:url});done=true}
+else if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(txt+' '+url);done=true}
+}catch(e){/* condivisione annullata dall'utente: nessun bonus, nessun errore */}
+if(!done)return;
+shareBonusSet(1);
+updateTrialBanner();
+paywallMsg('Grazie. Tre lanci extra sbloccati per stasera.','success');
+setTimeout(function(){paywallHide();showTrialBanner()},1400);
+}
+
 function paywallMsg(text,type){
 var msgDiv=document.getElementById('paywall-message');
 msgDiv.textContent=text;
@@ -765,6 +941,14 @@ if(pw){pw.style.opacity='0';pw.style.transition='opacity 0.4s ease';setTimeout(f
 if(app)app.classList.remove('locked');
 }
 
+// Uscita dal paywall senza acquistare: l'app torna visibile (regole, partita
+// salvata, impostazioni restano raggiungibili). I dadi restano fermi finche'
+// non si sblocca, quindi l'invito ritorna da solo al primo tiro.
+function paywallDismiss(){
+paywallHide();
+showTrialBanner();
+}
+
 // Auto-format codice
 document.addEventListener('DOMContentLoaded',function(){
 function setupCodeFormatter(inputId,activateFn){
@@ -778,6 +962,9 @@ el.addEventListener('keypress',function(e){if(e.key==='Enter')activateFn()});
 }
 setupCodeFormatter('paywall-code',paywallActivateCode);
 setupCodeFormatter('setup-code',setupVerifyCode);
+// L'email va lasciata in pace dal formatter dei codici: solo Invio per inviare.
+var em=document.getElementById('paywall-email');
+if(em)em.addEventListener('keypress',function(e){if(e.key==='Enter')paywallVerifyEmail()});
 paywallInit();conteDailyNudge();
 checkUnlockStatus();
 });
@@ -918,6 +1105,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div class="gh">
 <span class="trn" id="turn">Turno</span>
 <span class="rnd" id="rnd">R1</span>
+<span class="stk" id="streak" style="display:none" title="Serate consecutive"><b id="streakN">0</b></span>
 <div class="gbs">
 <button onclick="showBuild()">🏠</button>
 <button onclick="showTrade()">💰</button>
@@ -932,8 +1120,12 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 </div>
 </div>
 </div>
-<audio id="bgMusic" loop preload="auto" src="bg_music.mp3"></audio>
-<audio id="stripAudio" preload="auto" src="strip_music.mp3"></audio>
+<!-- preload="none": 7,6 MB di musica non si scaricano piu' all'avvio, ma solo
+     quando la musica parte davvero (startBgMusic / playStripMusic). -->
+<audio id="bgMusic" loop preload="none" src="bg_music.mp3"></audio>
+<audio id="stripAudio" preload="none" src="strip_music.mp3"></audio>
+<!-- Film di vittoria (Remotion). preload="none": pesa solo a chi vince davvero. -->
+<video id="victoryFilm" class="victory-film" src="assets/victory.mp4" muted playsinline preload="none" aria-hidden="true"></video>
 <div id="toast" class="tst"><h3 id="tttl"></h3><p id="ttxt"></p></div>
 <div id="timerPop" class="timer-popup"><div class="td" id="tpDisp">00:00</div><p id="tpWho" style="color:var(--gold);font-size:1.1rem;font-weight:bold"></p><p id="tpTxt" style="color:rgba(245,245,220,0.9);font-size:1rem"></p><button class="tsk" onclick="skipTimer()">⏭️ SALTA</button></div>
 
@@ -2601,6 +2793,9 @@ p.name+' è quasi eliminato! Un altro vestito perso e sarà game over!',
 p.name+' trema! Un vestito solo tra lei e la sconfitta!'
 ];
 var warning=warnings[Math.floor(Math.random()*warnings.length)];
+// Il Conte si copre gli occhi: il momento piu' caldo della partita non
+// puo' restare senza reazione della mascotte.
+try{conteReact('hide');if(navigator.vibrate)navigator.vibrate([25,40,25])}catch(_e){}
 // Adatta genere
 if(!p.isFemale){
 warning=warning.replace('salvarla','salvarlo').replace('tra lei','tra lui');
@@ -2673,10 +2868,10 @@ if(aiEnabled&&aiApiKey){
 setTimeout(readIntroAI,1500);
 }
 }
-function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata')}
+function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(precacheContePoses,1200)}
 function renderClothes(p){var clothes=getClothes(p.isFemale),h='';for(var i=0;i<5;i++)h+='<span class="cl-item '+(p.clothesArr[i]?'worn':'removed')+'">'+clothes[i]+'</span>';return h}
 function render(){var h='',cls=G.ps.length>2?'pg m':'pg';E('pgrid').className=cls;for(var i=0;i<G.ps.length;i++){var p=G.ps[i],act=i==G.cp;var isTied=tiedData.pid===i&&tiedData.rem>0;var hasBaby=babyData.from===i;h+='<div class="pc'+(act?' act':'')+(p.jail?' jl':'')+(p.out?' out':'')+'">';h+='<div class="pnm">'+(p.isFemale?'👩':'👨')+' '+shortName(p.name)+(isTied?' <span style="background:#d4af37;color:#000;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px">🔗 '+Math.floor(tiedData.rem/60)+':'+(tiedData.rem%60<10?'0':'')+tiedData.rem%60+'</span>':'')+(hasBaby?' <span style="font-size:1.2rem;margin-left:4px">👶</span>':'')+'</div>';h+='<div class="pst"><span>💰'+p.money+'</span><span>📍'+p.pos+(p.jail?'⛓️':'')+'</span></div>';h+='<div class="pds">';var sorted=p.props.slice().sort(function(a,b){return(P2C[a]||0)-(P2C[b]||0)});for(var j=0;j<sorted.length;j++){var pos=sorted[j],pr=G.props[pos];if(pr&&BD[pos]&&BD[pos].cn){var c=PC[BD[pos].cn];if(c)h+='<div class="pd" style="background:'+c.c+';'+(pr.mort?'opacity:0.4;':'')+'position:relative" onclick="openBuildProp('+pos+','+i+')">'+(pr.mort?'🔒':(pr.hotel?'H':(pr.houses||'')))+'</div>'}}h+='</div><div class="pcl" onclick="openCl('+i+')">'+renderClothes(p)+'</div></div>'}E('pgrid').innerHTML=h;E('rnd').textContent='R'+G.round}
-function updTurn(){E('turn').textContent=shortName(G.ps[G.cp].name)}
+function updTurn(){E('turn').textContent=shortName(G.ps[G.cp].name);try{streakRender(false)}catch(e){}}
 function openBuildProp(pos,pid){if(!G.ps[pid]||G.ps[pid].out)return;var pr=G.props[pos];if(!pr||pr.owner!=pid)return;if(!BD[pos]||!BD[pos].cn)return;var c=PC[BD[pos].cn];if(!c)return;var hasSet=ownsSet(pid,c.c);var mortVal=Math.floor(c.p/2);var currentRent=calcRent(pos);E('buildPropTl').textContent='#'+BD[pos].cn+' '+c.g+(pr.mort?' 🔒':'');var h='<div class="pcard"><div class="pcard-h" style="background:'+c.c+';color:'+(c.c=='#FFD700'||c.c=='#87CEEB'||c.c=='#FFA500'?'#000':'#fff')+'">'+BD[pos].txt+' - '+c.p+'€</div><div class="pcard-b"><div><span>Stato</span><span>'+(pr.mort?'IPOTECATA':(pr.hotel?'🏨 Hotel':pr.houses?'🏠 x'+pr.houses:'Terreno'))+'</span></div><div><span>Set completo</span><span>'+(hasSet?'✅ SÌ':'❌ NO')+'</span></div><div style="border-top:2px solid rgba(212,175,55,0.3);margin-top:6px;padding-top:6px"><span>💰 <strong>Affitto attuale</strong></span><span style="color:#22c55e;font-weight:700">'+currentRent+'€</span></div></div></div>';
 h+='<div style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;margin:10px 0"><p style="font-size:0.75rem;color:var(--gold);margin-bottom:6px;text-align:center">📊 TABELLA AFFITTI</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.75rem">';
 h+='<div style="background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:4px">Terreno</div><div style="text-align:right;padding:4px 8px">'+c.r+'€</div>';
@@ -2694,7 +2889,7 @@ function openCl(i){clEdit=i;E('clname').textContent=(G.ps[i].isFemale?'👩':'�
 function renderClothEditor(){var p=G.ps[clEdit],clothes=getClothes(p.isFemale),h='';for(var j=0;j<5;j++)h+='<span class="cl-item '+(p.clothesArr[j]?'worn':'removed')+'" onclick="toggleCloth('+j+')" style="cursor:pointer;font-size:2.5rem">'+clothes[j]+'</span>';E('clothItems').innerHTML=h;E('clothM').classList.add('on')}
 function toggleCloth(idx){var p=G.ps[clEdit];p.clothesArr[idx]=p.clothesArr[idx]?0:1;p.clothes=p.clothesArr.reduce(function(a,b){return a+b},0);renderClothEditor()}
 function saveCl(){closeM('clothM');render();saveGame();chkOver()}
-function roll(){if(!incrementTrialRoll())return;E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(_e){}conteSay('celebrate','Doppio '+v1+'!',2200);speak('Doppio! La fortuna premia gli audaci. Ritirate!')}doMove()},750)}
+function roll(){if(!incrementTrialRoll())return;try{streakTouch()}catch(_e){}E('rbtn').disabled=true;playDice();var d1=E('d1'),d2=E('d2'),v1=Math.floor(Math.random()*6)+1,v2=Math.floor(Math.random()*6)+1;G.dice=[v1,v2];d1.classList.add('roll');d2.classList.add('roll');setTimeout(function(){d1.classList.remove('roll');d2.classList.remove('roll');d1.textContent=v1;d2.textContent=v2;if(v1===v2){try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(_e){}conteSay('celebrate','Doppio '+v1+'!',2200);speak('Doppio! La fortuna premia gli audaci. Ritirate!')}doMove()},750)}
 function doMove(){var p=G.ps[G.cp],sum=G.dice[0]+G.dice[1];if(p.jail){if(G.dice[0]==G.dice[1]){p.jail=false;p.jailT=0;toast('🎉','Libero!')}else{p.jailT++;if(p.jailT>=3){p.money-=200;p.jail=false;p.jailT=0;toast('💸','-200€')}else{toast('⛓️','In prigione');render();showEnd();return}}}var np=p.pos+sum;var passedVia=false;if(np>40){np-=40;passedVia=true;p.money+=200;removeOneCloth(p);toast('💰','+200€ -1👕');addHist(shortName(p.name)+' passa Via: +200€ -1 vestito');checkOneClothWarning(p);
 // Annuncio vocale passaggio dal Via
 speak(p.name+' passa dal Via! Incassa 200 euro ma deve togliersi un indumento!');
@@ -2873,7 +3068,7 @@ function endTurn(){E('rbtn').disabled=false;selT=null;pendChallenge=null;pendBuy
 // Il cambio turno resta visivo (header + colore pedina), la voce tace.
 function announceNewTurn(){}
 function removeOneFromAll(){G.ps.forEach(function(p){if(p&&!p.out)removeOneCloth(p)});addHist('🔥 Tutti -1 vestito');render();saveGame();G.ps.forEach(function(p){if(p&&!p.out)checkOneClothWarning(p)});G.ps.forEach(function(p){if(p)chkOverPlayer(p)})}
-function chkOverPlayer(p){if(!p||p.out)return;if(p.money<=0||p.clothes<=0){p.out=true;if(p.props)p.props.forEach(function(pos){delete G.props[pos]});p.props=[];var act=getAct();if(act.length<=1){E('goI').textContent='🏆';E('goI').className='win-anim';E('goMsg').textContent='🎉 VINCITORE! 🎉';E('goMsg').className='win-text';E('goP').textContent=act[0]?act[0].name:'';E('goB').textContent='🔄 NUOVA PARTITA';E('goB').onclick=restart;if(act[0])speak(act[0].name+' vince la partita!');setTimeout(launchConfetti,100)}else{E('goI').textContent='💔';E('goI').className='';E('goMsg').textContent=p.money<=0?'BANCAROTTA!':'ELIMINATO!';E('goMsg').className='';E('goP').textContent=p.name;E('goB').textContent='CONTINUA';E('goB').onclick=function(){closeM('goM')};speak(p.name+' è stato eliminato!')}E('goM').classList.add('on');render();saveGame()}}
+function chkOverPlayer(p){if(!p||p.out)return;if(p.money<=0||p.clothes<=0){p.out=true;if(p.props)p.props.forEach(function(pos){delete G.props[pos]});p.props=[];var act=getAct();if(act.length<=1){E('goI').textContent='🏆';E('goI').className='win-anim';E('goMsg').textContent='🎉 VINCITORE! 🎉';E('goMsg').className='win-text';E('goP').textContent=act[0]?act[0].name:'';E('goB').textContent='🔄 NUOVA PARTITA';E('goB').onclick=restart;if(act[0])speak(act[0].name+' vince la partita!');setTimeout(launchConfetti,100);try{playVictoryFilm(act[0]?act[0].name:'')}catch(_e){}}else{E('goI').textContent='💔';E('goI').className='';E('goMsg').textContent=p.money<=0?'BANCAROTTA!':'ELIMINATO!';E('goMsg').className='';E('goP').textContent=p.name;E('goB').textContent='CONTINUA';E('goB').onclick=function(){closeM('goM')};speak(p.name+' è stato eliminato!');try{conteReact('laugh')}catch(_e){}}E('goM').classList.add('on');render();saveGame()}}
 function chkOver(){for(var i=0;i<G.ps.length;i++){if(G.ps[i]&&!G.ps[i].out&&(G.ps[i].money<=0||G.ps[i].clothes<=0)){chkOverPlayer(G.ps[i]);break}}}
 function handleGO(){getAct().length<=1?restart():closeM('goM')}
 function restart(){closeM('goM');if(TM.main)clearInterval(TM.main);if(TM.bg)clearInterval(TM.bg);tiedData={pid:null,rem:0};babyData={from:null,to:null};pendBuy=null;stopStripMusic();stopBgMusic();try{localStorage.removeItem('adultopia_save')}catch(e){}E('game').classList.remove('on');E('setup').classList.remove('on');E('intro').classList.add('on');E('hdrBtns').style.display='none';E('pnames').classList.remove('on');E('loadBtn').style.display='none';document.querySelectorAll('#setup .po').forEach(function(el){el.classList.remove('sel')});G={np:0,ps:[],cp:0,dice:[0,0],props:{},round:1,auct:null,mode:'n',createdRules:[],posRules:{},history:[]}}
@@ -2892,6 +3087,23 @@ function showView(){E('viewS').innerHTML=Object.keys(PC).map(function(n){return'
 function showVC(){E('viewC').innerHTML=renderPC(PC[parseInt(E('viewS').value)])}
 function showHist(){var h='';if(!G.history||!G.history.length)h='<p style="color:rgba(245,245,220,0.5);text-align:center">Nessuna azione</p>';else for(var i=0;i<Math.min(15,G.history.length);i++){var item=G.history[i];var icon='📍';if(item.txt.indexOf('compra')>=0)icon='🏠';else if(item.txt.indexOf('paga')>=0)icon='💸';else if(item.txt.indexOf('vestito')>=0)icon='👕';else if(item.txt.indexOf('Via')>=0)icon='💰';else if(item.txt.indexOf('prigione')>=0)icon='⛓️';else if(item.txt.indexOf('Regola')>=0)icon='📜';else if(item.txt.indexOf('casa')>=0||item.txt.indexOf('hotel')>=0)icon='🏗️';else if(item.txt.indexOf('ipoteca')>=0)icon='🔒';else if(item.txt.indexOf('riscatta')>=0)icon='🔓';else if(item.txt.indexOf('asta')>=0)icon='🔨';else if(item.txt.indexOf('→')>=0)icon='🎲';h+='<div class="hist-item" style="display:flex;align-items:center;gap:8px;padding:8px 12px;margin:4px 0;background:rgba(0,0,0,0.3);border-radius:8px;border-left:3px solid var(--ruby)"><span style="font-size:1.2rem">'+icon+'</span><span style="flex:1">'+item.txt+'</span></div>';}E('histList').innerHTML=h;E('histM').classList.add('on')}
 function showHistGO(){closeM('goM');showHist()}
+// Film di vittoria: la celebrazione scorre a schermo pieno sopra la schermata
+// dei risultati, poi svanisce e lascia il verdetto. Se il video non parte
+// (autoplay negato, file assente) il velo si toglie da solo: mai schermo nero.
+function playVictoryFilm(){
+var v=document.getElementById('victoryFilm');
+if(!v)return;
+var closed=false;
+var done=function(){if(closed)return;closed=true;v.classList.remove('on');try{v.pause()}catch(e){}};
+try{v.currentTime=0}catch(e){}
+v.onended=done;
+v.onerror=done;
+v.classList.add('on');
+var safety=setTimeout(done,4600);
+v.addEventListener('ended',function(){clearTimeout(safety)},{once:true});
+var p=v.play();
+if(p&&p.catch)p.catch(function(){clearTimeout(safety);done()});
+}
 function launchConfetti(){var box=E('confettiBox');if(!box)return;box.innerHTML='';var colors=['#d4af37','#b91c1c','#f5f5dc','#ffd700','#ff6b6b','#4ecdc4'];for(var i=0;i<50;i++){var conf=document.createElement('div');conf.className='confetti';conf.style.left=Math.random()*100+'%';conf.style.background=colors[Math.floor(Math.random()*colors.length)];conf.style.animationDelay=Math.random()*2+'s';conf.style.animationDuration=(2+Math.random()*2)+'s';box.appendChild(conf);}setTimeout(function(){box.innerHTML=''},5000)}
 function showTmM(){E('tmSl').value=2;updTmV();E('tmM').classList.add('on')}
 function updTmV(){E('tmV').textContent=E('tmSl').value+' minuti'}
@@ -3711,9 +3923,12 @@ elem.webkitRequestFullscreen();
 document.removeEventListener('click',tryFullscreen);
 }
 
-// Register minimal service worker for PWA
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch",function(e){e.respondWith(fetch(e.request))})').catch(function(){});
+// Service worker vero (sw.js). La vecchia registrazione usava una data: URL,
+// vietata dalla spec: falliva sempre in silenzio, quindi niente offline.
+if('serviceWorker' in navigator&&location.protocol!=='file:'){
+window.addEventListener('load',function(){
+navigator.serviceWorker.register('/sw.js').catch(function(e){console.log('SW non registrato:',e&&e.message)});
+});
 }
 </script>
 
