@@ -1946,7 +1946,11 @@ var currentAudio=null;
 // Ferma tutto l'audio e svuota la coda
 // Taglio netto della voce corrente: nessun handler residuo, coda azzerata.
 // Usato da speak() per la politica latest-wins (la voce non resta mai indietro).
+// Contatore di generazione della voce: ogni taglio lo incrementa, cosi' le
+// esecuzioni di processAudioQueue gia' in volo si riconoscono obsolete.
+var speechGen=0;
 function cutSpeech(){
+speechGen++;
 try{if(webAudioSource){webAudioSource.onended=null;try{webAudioSource.stop()}catch(e){}webAudioSource=null;}}catch(e){}
 try{if(currentAudio){currentAudio.onended=null;currentAudio.onerror=null;currentAudio.pause();currentAudio=null;}}catch(e){}
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
@@ -1954,6 +1958,7 @@ aiAudioQueue=[];
 aiAudioPlaying=false;
 }
 function stopAllAudio(){
+speechGen++;
 aiAudioQueue=[];
 if(currentAudio){
 currentAudio.pause();
@@ -2019,6 +2024,13 @@ aiAudioQueue=[];
 return;
 }
 aiAudioPlaying=true;
+// GENERAZIONE: fra la richiesta TTS e l'avvio del suono ci sono tre await.
+// Se nel frattempo arriva una nuova frase, questa esecuzione e' obsoleta e
+// deve sparire: senza questo controllo creava una seconda sorgente audio
+// (due dialoghi sovrapposti) e a volte fermava la frase nuova al posto della
+// propria, facendo parlare la voce vecchia. Esce senza toccare lo stato
+// condiviso, che ormai appartiene all'esecuzione piu' recente.
+var myGen=speechGen;
 // Timeout di sicurezza: se dopo 30s ancora playing, resetta
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 audioSafetyTimeout=setTimeout(function(){
@@ -2043,20 +2055,24 @@ console.log('processAudioQueue: chiamo API TTS...');
 try{
 window._conteText=t;
 var blob=await cachedTTS(t, narratorVoice);
+if(myGen!==speechGen)return;   // frase superata mentre scaricava
 console.log('processAudioQueue: blob ricevuto');
 // Usa Web Audio API per iOS compatibility
 var arrayBuffer=await blob.arrayBuffer();
+if(myGen!==speechGen)return;
 var ac=getAC();
 // Resume esplicito per iOS - deve essere fatto SUBITO prima di play
 if(ac&&ac.state==='suspended'){
 console.log('processAudioQueue: resuming AudioContext...');
 await ac.resume();
+if(myGen!==speechGen)return;
 }
 if(ac&&ac.state==='running'){
 try{
 // Assicura graph inizializzato (voiceGainNode creato)
 initAudioGraph();
 var audioBuffer=await ac.decodeAudioData(arrayBuffer);
+if(myGen!==speechGen)return;   // ultimo controllo prima di far suonare
 // Riarma il safety timeout sulla durata reale (+3s margine): non scatta piu'
 // durante una narrazione lunga legittima, quindi niente accavallamento.
 try{if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
@@ -2112,6 +2128,9 @@ playWithHTMLAudio(blob,bg);
 playWithHTMLAudio(blob,bg);
 }
 }catch(e){
+// Anche in errore: se la frase e' stata superata, questo ramo non deve
+// azzerare lo stato della frase nuova che sta gia' suonando.
+if(myGen!==speechGen)return;
 console.log('TTS error:',e.message||e);
 try{conteSay('wink',t,Math.max(3500,(t||'').length*55));}catch(_e){}
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
@@ -2301,8 +2320,47 @@ try{prewarmBoardNarration(narratorVoice);}catch(e){}
 processAudioQueue();
 }
 
+// ========== LINGUA E CANALE AMBIENT ==========
+// Il commentatore deve parlare SEMPRE italiano. I testi delle caselle e delle
+// carte sono scritti a mano, ma consigli, poesie e battute arrivano da un
+// modello che ogni tanto ignora l'istruzione: meglio il silenzio di una frase
+// in inglese, quindi qui si controlla prima di leggere.
+var _IT_SPIE=/\b(il|lo|la|gli|le|un|una|uno|di|del|della|che|non|per|con|sul|nel|come|piu|voi|vostro|vostra|vostre|vostri|sono|essere|questo|questa|quando|dove|anche|ogni|suo|sua|tra|fra|mentre|adesso|adesso|poi|senza|verso|dopo)\b/gi;
+var _EN_SPIE=/\b(the|and|you|your|with|this|that|for|are|his|her|they|from|have|will|would|should|about|there|their|what|when|which|while|been|being|into|over|than|then|them|each|other|feel|touch|slowly|together)\b/gi;
+function sembraItaliano(t){
+if(!t)return false;
+var it=(String(t).match(_IT_SPIE)||[]).length;
+var en=(String(t).match(_EN_SPIE)||[]).length;
+if(it+en<3)return true;      // frase troppo corta per giudicare: passa
+return it>=en;
+}
+// Canale ambient: commenti di contorno durante i timer (consigli, poesie,
+// aneddoti). Non interrompono MAI la voce di gioco e non si accodano stantii:
+// se il canale e' occupato saltano il turno, tanto chi li genera riprova.
+function voceOccupata(){return aiAudioPlaying||aiAudioQueue.length>0}
+function speakAmbient(t){
+if(!t)return false;
+if(!sembraItaliano(t)){console.log('Ambient scartato: non sembra italiano');return false}
+if(voceOccupata()){console.log('Ambient saltato: la voce di gioco sta parlando');return false}
+speak(t);
+return true;
+}
+// Per i testi che sono istruzioni (la guida al massaggio): aspettano il loro
+// turno invece di sparire, ma non tagliano mai chi sta parlando. Dopo una
+// decina di tentativi lasciano perdere, cosi' non resta un timer appeso se
+// nel frattempo la partita e' andata avanti.
+function speakQuandoLibera(t,tentativi){
+if(!t)return;
+tentativi=(tentativi==null)?10:tentativi;
+if(!sembraItaliano(t)){console.log('Testo scartato: non sembra italiano');return}
+if(!voceOccupata()){speak(t);return}
+if(tentativi<=0){console.log('Rinuncio: la voce e\' rimasta occupata');return}
+setTimeout(function(){speakQuandoLibera(t,tentativi-1)},1500);
+}
+
 // Ferma audio corrente e svuota coda
 function stopSpeaking(){
+speechGen++;
 conteTalkStop();
 aiAudioQueue=[];
 if(currentAudio){
@@ -2696,7 +2754,7 @@ try{
 var resp=await callOpenAI('chat/completions',{
 
 model:'gpt-4o-mini',
-messages:[{role:'system',content:'Rispondi SOLO con 3 suggerimenti numerati (1. 2. 3.), senza introduzioni. Ogni suggerimento deve essere una frase completa di max 15 parole. In italiano.'},{role:'user',content:prompt}],
+messages:[{role:'system',content:'Rispondi SOLO con 3 suggerimenti numerati (1. 2. 3.), senza introduzioni. Ogni suggerimento deve essere una frase completa di max 15 parole. RISPONDI ESCLUSIVAMENTE IN ITALIANO, mai in inglese.'},{role:'user',content:prompt}],
 max_tokens:200,temperature:0.95
 });
 E('suggLoading').style.display='none';
@@ -2727,7 +2785,7 @@ try{
 var resp=await callOpenAI('chat/completions',{
 
 model:'gpt-4o-mini',
-messages:[{role:'system',content:'Rispondi SOLO con 3 regole numerate (1. 2. 3.), senza introduzioni. Ogni regola deve essere un\'azione immediata di max 12 parole con durata specifica. In italiano.'},{role:'user',content:prompt}],
+messages:[{role:'system',content:'Rispondi SOLO con 3 regole numerate (1. 2. 3.), senza introduzioni. Ogni regola deve essere un\'azione immediata di max 12 parole con durata specifica. RISPONDI ESCLUSIVAMENTE IN ITALIANO, mai in inglese.'},{role:'user',content:prompt}],
 max_tokens:200,temperature:0.95
 });
 E('suggLoadingR').style.display='none';
@@ -2832,6 +2890,9 @@ async function readIntroAI(){
 if(!aiApiKey||!aiEnabled)return;
 // Evita di far partire l'intro se già in riproduzione
 if(introAudioPlaying)return;
+// L'intro suona su un elemento audio suo, fuori dalla coda del narratore:
+// se il narratore sta gia' parlando si sovrapporrebbe. Meglio rinunciare.
+if(typeof voceOccupata==='function'&&voceOccupata())return;
 introAudioPlaying=true;
 var introText="Benvenuti in Adultòpia. Non è solo un gioco, è un'esperienza. Preparate l'atmosfera: luci soffuse, candele profumate, musica sensuale. Niente interruzioni. La temperatura ideale? Quella che vi farà desiderare di togliervi qualcosa. Siete pronti a giocare?";
 try{
@@ -3141,7 +3202,7 @@ try{
 var resp=await callOpenAI('chat/completions',{
 model:'gpt-4o-mini',
 messages:[
-{role:'system',content:'Sei il Game Master di ADULTOPIA, un gioco da tavolo per coppie adulte. Giocatori: '+names+'. Rispondi in italiano, MAX 2 frasi brevi. Sii simpatico e malizioso.'},
+{role:'system',content:'Sei il Game Master di ADULTOPIA, un gioco da tavolo per coppie adulte. Giocatori: '+names+'. RISPONDI ESCLUSIVAMENTE IN ITALIANO, mai in inglese. MAX 2 frasi brevi. Sii simpatico e malizioso.'},
 {role:'user',content:context}
 ],
 max_tokens:100,
@@ -3150,7 +3211,7 @@ temperature:0.95
 if(resp.ok){
 var data=await resp.json();
 var txt=data.choices[0].message.content;
-speak(txt);
+speakAmbient(txt);
 }
 }catch(e){console.log('GM error:',e)}
 }
@@ -3243,7 +3304,7 @@ var barzelletta=BARZELLETTE[Math.floor(Math.random()*BARZELLETTE.length)];
 // Dopo 10 secondi, racconta la barzelletta
 setTimeout(function(){
 if(E('timerPop').classList.contains('on')){
-speak('Ecco una barzelletta per farvi ridere ancora di più! '+barzelletta);
+speakAmbient('Ecco una barzelletta per farvi ridere ancora di più! '+barzelletta);
 }
 },10000);
 }
@@ -3283,11 +3344,12 @@ if(resp.ok){
 var data=await resp.json();
 var guida=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
 if(guida){
-speak(guida);
+// Istruzione, non commento: aspetta che la voce di gioco abbia finito.
+speakQuandoLibera(guida);
 }
 }
 }catch(e){
-speak(names+', iniziate il '+massaggio.nome+'. '+massaggio.desc+'.');
+speakQuandoLibera(names+', iniziate il '+massaggio.nome+'. '+massaggio.desc+'.');
 }
 
 // PARTE 2: Dopo 45 secondi, recita poesia o aneddoto sull'amore
@@ -3325,12 +3387,12 @@ var data=await resp.json();
 var testo=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
 if(testo){
 console.log(tipo+' ('+autore.nome+'):',testo.length,'caratteri');
-speak(testo);
+speakAmbient(testo);
 }
 }
 }catch(e){
 console.log('Poesia/aneddoto error:',e);
-speak(names+', lasciatevi cullare dal ritmo del massaggio. L\'amore si esprime attraverso il tocco.');
+speakAmbient(names+', lasciatevi cullare dal ritmo del massaggio. L\'amore si esprime attraverso il tocco.');
 }
 }
 
@@ -3416,7 +3478,9 @@ var data=await resp.json();
 var advice=data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
 if(advice&&timerTherapistActive){
 console.log('Narratore: "'+advice.substring(0,50)+'..."');
-speak(advice);
+// Ambient: se la voce sta ancora leggendo la sfida, questo commento salta
+// il giro invece di tagliarla a meta' (prima la troncava dopo 8 secondi).
+speakAmbient(advice);
 }
 }
 }catch(e){
