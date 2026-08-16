@@ -1466,19 +1466,40 @@ var TTS_CACHE_VERSION = 'v3';          // v3: gpt-4o-mini-tts voce seducente    
 
 function ttsKey(voice, text){ return TTS_CACHE_VERSION + '|' + (voice || narratorVoice) + '|' + text; }
 
+// IndexedDB puo' restare appeso senza mai rispondere: succede in navigazione
+// privata, sotto pressione di spazio, quando un'altra scheda tiene aperta la
+// stessa base dati, o per i noti capricci di Safari su iOS. Le richieste
+// semplicemente non chiamano ne' onsuccess ne' onerror.
+// Senza una scadenza il narratore moriva del tutto: la lettura della cache
+// non tornava mai, la coda restava bloccata e la voce spariva anche se le
+// chiamate TTS funzionavano benissimo. La cache serve ad andare piu' veloci,
+// non puo' avere il potere di zittire il gioco: al primo palo la si dichiara
+// inutilizzabile e si genera direttamente dall'API.
+var _ttsDBrotto = false;
+var TTS_DB_ATTESA_MAX = 2500;
+function conScadenza(promessa, ms, seScade){
+  return Promise.race([promessa, new Promise(function(r){ setTimeout(function(){ r(seScade) }, ms) })]);
+}
 function openTTSDB(){
-  return new Promise(function(res){
-    if(_ttsDB) return res(_ttsDB);
+  if(_ttsDBrotto) return Promise.resolve(null);
+  if(_ttsDB) return Promise.resolve(_ttsDB);
+  var apertura = new Promise(function(res){
     try{
       var req = indexedDB.open(TTS_DB_NAME, 1);
       req.onupgradeneeded = function(){ var db = req.result; if(!db.objectStoreNames.contains(TTS_STORE)) db.createObjectStore(TTS_STORE); };
       req.onsuccess = function(){ _ttsDB = req.result; res(_ttsDB); };
       req.onerror = function(){ res(null); };
+      req.onblocked = function(){ res(null); };
     }catch(e){ res(null); }
+  });
+  return conScadenza(apertura, TTS_DB_ATTESA_MAX, null).then(function(db){
+    if(!db){ _ttsDBrotto = true; console.log('Cache voce non disponibile: si genera sempre dall\'API'); }
+    return db;
   });
 }
 function ttsDBget(key){
-  return new Promise(function(res){
+  if(_ttsDBrotto) return Promise.resolve(null);
+  var lettura = new Promise(function(res){
     openTTSDB().then(function(db){
       if(!db) return res(null);
       try{
@@ -1489,8 +1510,10 @@ function ttsDBget(key){
       }catch(e){ res(null); }
     });
   });
+  return conScadenza(lettura, TTS_DB_ATTESA_MAX, null);
 }
 function ttsDBput(key, blob){
+  if(_ttsDBrotto) return;
   openTTSDB().then(function(db){
     if(!db) return;
     try{ var tx = db.transaction(TTS_STORE, 'readwrite'); tx.objectStore(TTS_STORE).put(blob, key); }catch(e){}
