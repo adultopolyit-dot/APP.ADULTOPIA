@@ -1049,13 +1049,15 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div class="app">
 <div class="hdr">
 <div class="audio-btns" id="audioCtrl">
-<button onclick="showVolumeControl()" id="musicBtn">🔇</button>
-<button onclick="toggleMic()" id="micBtn">🎤</button>
+<button onclick="showVolumeControl()" id="musicBtn" aria-label="Volume e musica" title="Volume e musica">🔇</button>
+<button onclick="toggleMic()" id="micBtn" aria-label="Comandi vocali" title="Comandi vocali">🎤</button>
 </div>
 <img src="assets/logo-header.webp" alt="ADULTOPIA" width="175" height="50" decoding="async">
 <div class="hdr-btns" id="hdrBtns" style="display:none">
-<button onclick="saveAndExit()">🏠</button>
-<button onclick="showSettings()">⚙️</button>
+<!-- Era 🏠 come il bottone "costruisci case" qui sotto: stessa icona, due
+     azioni diverse, sulla stessa schermata. Ora esce da una porta. -->
+<button onclick="saveAndExit()" aria-label="Salva ed esci" title="Salva ed esci">🚪</button>
+<button onclick="showSettings()" aria-label="Impostazioni" title="Impostazioni">⚙️</button>
 </div>
 </div>
 <div id="intro" class="scr on">
@@ -1119,11 +1121,11 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <span class="rnd" id="rnd">R1</span>
 <span class="stk" id="streak" style="display:none" title="Serate consecutive"><b id="streakN">0</b></span>
 <div class="gbs">
-<button onclick="showBuild()">🏠</button>
-<button onclick="showTrade()">💰</button>
-<button onclick="showTmM()">⏱️</button>
-<button onclick="showHist()">📜</button>
-<button onclick="showHelp()">❓</button>
+<button onclick="showBuild()" aria-label="Costruisci e ipoteca" title="Costruisci e ipoteca">🏠</button>
+<button onclick="showTrade()" aria-label="Scambi" title="Scambi">💰</button>
+<button onclick="showTmM()" aria-label="Timer" title="Timer">⏱️</button>
+<button onclick="showHist()" aria-label="Cronologia" title="Cronologia">📜</button>
+<button onclick="showHelp()" aria-label="Regole del gioco" title="Regole del gioco">❓</button>
 </div>
 </div>
 <div class="gm">
@@ -3939,6 +3941,22 @@ updateAiStatus();
 checkSave();
 // Chi e' gia' stato qui non rilegge la presentazione: dritto al tavolo.
 saltaIntroSeGiaVista();
+
+// Esc chiude i pannelli che si aprono per consultazione. Restano fuori quelli
+// che fanno avanzare la partita (sfida, carta, asta, acquisto, fine partita,
+// scelta del partner): quelli si chiudono col loro bottone, perche' saltarli
+// con un tasto cambierebbe le regole del gioco.
+var MODALI_CHIUDIBILI=['helpM','histM','settingsM','volumeM','viewM','tmM','tradeM','buildM','buildPropM','clothM'];
+document.addEventListener('keydown',function(e){
+if(e.key!=='Escape')return;
+// Il paywall ha la sua uscita dedicata e va gestito per primo.
+var pw=document.getElementById('adultopia-paywall');
+if(pw&&pw.style.display==='flex'){paywallDismiss();return}
+for(var i=MODALI_CHIUDIBILI.length-1;i>=0;i--){
+var el=document.getElementById(MODALI_CHIUDIBILI[i]);
+if(el&&el.classList.contains('on')){el.classList.remove('on');return}
+}
+});
 
 // ===== PWA INSTALL PROMPT =====
 var deferredPrompt=null;
