@@ -2177,7 +2177,11 @@ playWithHTMLAudio(blob,bg);
 // azzerare lo stato della frase nuova che sta gia' suonando.
 if(myGen!==speechGen)return;
 console.log('TTS error:',e.message||e);
-try{conteSay('wink',t,Math.max(3500,(t||'').length*55));}catch(_e){}
+/* Qui la voce non e' partita (rete caduta, quota finita, errore TTS): la
+   bolla non accompagna piu' il narratore, lo sostituisce. Resta quindi molto
+   piu' a lungo, perche' e' l'unico modo che ha la coppia di sapere cosa fare
+   e certe sfide vanno lette con calma. */
+try{conteSay('wink',t,Math.max(9000,(t||'').length*110));}catch(_e){}
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
 aiAudioPlaying=false;
 if(bg&&bgMusicPlaying){bg.volume=musicVolume;}
