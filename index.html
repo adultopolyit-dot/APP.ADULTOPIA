@@ -1421,11 +1421,13 @@ async function callOpenAI(endpoint, body) {
     body.endpoint = endpoint;
   }
   
-  return fetch(url, {
+  // Scadenza anche qui: una richiesta appesa lasciava girare le rotelle di
+  // caricamento per sempre (suggerimenti, regole, consigli del narratore).
+  return fetchConScadenza(url, {
     method: 'POST',
     headers: headers,
     body: JSON.stringify(body)
-  });
+  }, 25000);
 }
 
 // Helper per TTS via Netlify Functions
@@ -1446,11 +1448,13 @@ function ttsPayload(text, voice, model) {
 async function callOpenAITTS(text, voice, model) {
   model = model || TTS_MODEL;
   if (aiApiKey === 'NETLIFY_FUNCTIONS') {
-    var resp = await fetch('/.netlify/functions/openai', {
+    // Senza scadenza una richiesta appesa lasciava muto il narratore fino al
+    // timeout di sicurezza da 30 secondi: troppo, in mezzo a una serata.
+    var resp = await fetchConScadenza('/.netlify/functions/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(ttsPayload(text, voice, model))
-    });
+    }, 20000);
     if (resp.ok) {
       var data = await resp.json();
       // Se la function ha propagato un errore in JSON (quota esaurita ecc),

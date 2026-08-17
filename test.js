@@ -106,6 +106,9 @@ verifica('le richieste di sblocco hanno una scadenza', /function fetchConScadenz
   (html.match(/fetchConScadenza\('\/\.netlify\/functions\/verify/g) || []).length >= 3,
   'con la richiesta appesa il bottone restava su "..." per sempre: chi aveva gia\' pagato non capiva ne\' poteva riprovare');
 
+verifica('nessuna chiamata di rete resta appesa per sempre', !/await fetch\('\/\.netlify/.test(html) && /return fetchConScadenza\(url/.test(html),
+  'una richiesta appesa lasciava girare le rotelle o zittiva il narratore: ogni chiamata AI passa da una scadenza');
+
 sezione('Streak');
 const ymd = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
 const ieri = new Date(); ieri.setDate(ieri.getDate() - 1);
