@@ -166,6 +166,10 @@ verifica('il tempo si legge dall\'orologio, non dai battiti', /var scadenza=Date
   'scalando un contatore a ogni battito, col telefono bloccato un massaggio da 3 minuti non finiva entro 10 (i browser rallentano i contatori in secondo piano)');
 verifica('il timer si ricalcola al ritorno in primo piano', /visibilitychange',window\._timerRisveglio/.test(html),
   'riaccendendo lo schermo il numero mostrato restava quello vecchio fino al battito successivo');
+verifica('nessun timer conta a battiti', !/if\(--rem<=0\)/.test(html),
+  'ogni contatore che scala a battiti si allunga col telefono bloccato: vale per le sfide e per le mani legate');
+verifica('anche il timer in sottofondo usa l\'orologio', /function startBgTimer[\s\S]{0,200}var scadenza=Date\.now\(\)/.test(html),
+  'le mani legate durano 2-3 minuti mentre la partita continua: e\' il timer piu\' esposto alle pause del telefono');
 (() => {
   // Orologio finto: lo schermo si blocca dopo 5s e i battiti passano a uno al minuto.
   const battiti = [];

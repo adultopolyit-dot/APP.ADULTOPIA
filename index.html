@@ -3310,7 +3310,35 @@ if(pendBuy){var pb=pendBuy;pendBuy=null;showBuyProp(pb.pos,pb.c,pb.sp);return}
 // Cambio turno automatico dopo le sfide
 setTimeout(function(){endTurn()},800);
 }
-function startBgTimer(sec,name,pid){var rem=sec;tiedData={pid:pid,rem:rem};toast('⏱️',name+' '+Math.floor(sec/60)+' minuti');render();if(TM.bg)clearInterval(TM.bg);TM.bg=setInterval(function(){if(--rem<=0){clearInterval(TM.bg);TM.bg=null;tiedData={pid:null,rem:0};render();toast('⏰','Tempo scaduto!');try{var ctx=new(window.AudioContext||window.webkitAudioContext)();[800,600,800].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0.4,ctx.currentTime+i*0.35);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.35+0.3);o.start(ctx.currentTime+i*0.35);o.stop(ctx.currentTime+i*0.35+0.3)})}catch(e){}}else{tiedData.rem=rem;render()}},1000)}
+// Stesso principio del timer delle sfide: la scadenza e' un'ora, non un
+// conteggio di battiti. Questo gira in sottofondo mentre la partita
+// continua (le mani legate durano due o tre minuti), quindi e' ancora piu'
+// esposto alle pause del telefono.
+function startBgTimer(sec,name,pid){
+var scadenza=Date.now()+sec*1000;
+tiedData={pid:pid,rem:sec};
+toast('⏱️',name+' '+Math.floor(sec/60)+' minuti');
+render();
+if(TM.bg)clearInterval(TM.bg);
+function suonaFine(){
+try{var ctx=new(window.AudioContext||window.webkitAudioContext)();
+[800,600,800].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(0.4,ctx.currentTime+i*0.35);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.35+0.3);o.start(ctx.currentTime+i*0.35);o.stop(ctx.currentTime+i*0.35+0.3)})}catch(e){}
+}
+function battitoBg(){
+var rem=Math.max(0,Math.round((scadenza-Date.now())/1000));
+if(rem<=0){
+if(TM.bg){clearInterval(TM.bg);TM.bg=null}
+tiedData={pid:null,rem:0};
+render();
+toast('⏰','Tempo scaduto!');
+suonaFine();
+return;
+}
+tiedData.rem=rem;
+render();
+}
+TM.bg=setInterval(battitoBg,1000);
+}
 function endTurn(){E('rbtn').disabled=false;selT=null;pendChallenge=null;pendBuy=null;var prev=G.cp;do{G.cp=(G.cp+1)%G.ps.length}while(G.ps[G.cp].out&&getAct().length>1);if(G.cp==0&&prev!=0)G.round++;render();updTurn();saveGame();announceNewTurn();}
 // Richiesta utente: il narratore NON annuncia mai il turno del giocatore.
 // Il cambio turno resta visivo (header + colore pedina), la voce tace.
