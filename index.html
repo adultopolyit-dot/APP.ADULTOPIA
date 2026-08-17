@@ -400,8 +400,14 @@ body.has-trial-banner .intro-cta{padding-bottom:35px}
 
 /* ========== PHYSICAL GAME CTA ========== */
 .physical-game-cta{margin-top:15px;text-align:center}
-.btn-physical{background:linear-gradient(145deg,var(--gold),#c9a227);border:none;border-radius:10px;padding:12px 18px;color:#000;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(212,175,55,0.4);width:100%;max-width:300px}
-.btn-physical:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,175,55,0.5)}
+/* Era oro pieno con alone: l'elemento piu' luminoso di tutta la schermata di
+   avvio, piu' forte della domanda "quanti giocatori" a cui l'utente deve
+   rispondere per giocare. Il richiamo piu' forte portava fuori dall'app,
+   verso il negozio, prima ancora del primo turno. Ora resta ben visibile ma
+   sotto la scelta principale: oro come contorno, non come riempimento. */
+.btn-physical{background:transparent;border:1px solid rgba(212,175,55,0.55);border-radius:10px;padding:11px 18px;color:var(--gold);font-weight:600;font-size:0.76rem;cursor:pointer;transition:background .25s ease,border-color .25s ease;width:100%;max-width:300px}
+.btn-physical:hover{background:rgba(212,175,55,0.1);border-color:var(--gold)}
+.btn-physical:active{transform:translateY(1px)}
 /* ========== END PHYSICAL GAME CTA ========== */
 
 /* ========== REFERRAL SECTION - Simple Link ========== */
