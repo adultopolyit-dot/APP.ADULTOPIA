@@ -102,6 +102,10 @@ verifica('il salvataggio fallito avvisa l\'utente', /_salvataggioRotto/.test(htm
 verifica('l\'avviso non si ripete a ogni mossa', /if\(!_salvataggioRotto\)\{\n_salvataggioRotto=true;/.test(html),
   'si salva a ogni mossa: un avviso per volta sarebbe peggio del problema');
 
+verifica('le richieste di sblocco hanno una scadenza', /function fetchConScadenza/.test(html) &&
+  (html.match(/fetchConScadenza\('\/\.netlify\/functions\/verify/g) || []).length >= 3,
+  'con la richiesta appesa il bottone restava su "..." per sempre: chi aveva gia\' pagato non capiva ne\' poteva riprovare');
+
 sezione('Streak');
 const ymd = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
 const ieri = new Date(); ieri.setDate(ieri.getDate() - 1);

@@ -897,7 +897,7 @@ var code=input.value.trim();
 if(!code){paywallMsg('Inserisci un codice valido','error');return}
 paywallMsg('Verifica in corso...','');
 try{
-var res=await fetch('/.netlify/functions/verify-code',{
+var res=await fetchConScadenza('/.netlify/functions/verify-code',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({code:code})
@@ -917,6 +917,19 @@ paywallMsg('Errore di connessione. Riprova.','error');
 }
 }
 
+// Una richiesta di sblocco puo' restare appesa (rete lenta, Shopify che non
+// risponde): senza scadenza il bottone restava su "..." per sempre e chi
+// aveva gia' pagato non capiva ne' poteva riprovare. Dodici secondi coprono
+// il limite delle Netlify Functions piu' il tempo di rete.
+function fetchConScadenza(url,opzioni,ms){
+var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+var scaduta=false;
+var t=setTimeout(function(){scaduta=true;if(ctrl)ctrl.abort()},ms||12000);
+if(ctrl)opzioni=Object.assign({},opzioni,{signal:ctrl.signal});
+return fetch(url,opzioni).then(function(r){clearTimeout(t);return r})
+.catch(function(e){clearTimeout(t);throw scaduta?new Error('SCADUTA'):e});
+}
+
 // Sblocco con l'email dell'acquisto. Prima esisteva solo la strada del codice:
 // chi comprava su Shopify e non riceveva un codice restava chiuso fuori
 // dopo aver pagato. La function verify-subscription interroga gli ordini.
@@ -928,7 +941,7 @@ var btn=document.getElementById('paywall-email-btn');
 if(btn){btn.disabled=true;btn.textContent='...'}
 paywallMsg('Cerco il tuo ordine...','');
 try{
-var res=await fetch('/.netlify/functions/verify-subscription',{
+var res=await fetchConScadenza('/.netlify/functions/verify-subscription',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({email:email})
@@ -1035,7 +1048,7 @@ var code=input.value.trim();
 if(!code){setupMsg('Inserisci un codice valido','error');return}
 setupMsg('Verifica in corso...','');
 try{
-var res=await fetch('/.netlify/functions/verify-code',{
+var res=await fetchConScadenza('/.netlify/functions/verify-code',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({code:code})
