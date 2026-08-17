@@ -65,7 +65,8 @@ const ambiente = {
 const nomiFn = ['trialTodayKey', 'trialGetUsed', 'trialSetUsed', 'shareBonusGet', 'shareBonusSet', 'trialMax',
   'incrementTrialRoll', 'streakGet', 'streakDayDiff', 'streakTouch', 'streakCelebrate', 'sembraItaliano',
   'sanitizeForTTS', 'cleanTextForTTS'];
-const spie = html.match(/var _IT_SPIE=[^;]+;/)[0] + html.match(/var _EN_SPIE=[^;]+;/)[0];
+const spie = html.match(/var _IT_SPIE=[^;]+;/)[0] + html.match(/var _EN_SPIE=[^;]+;/)[0] +
+  html.match(/var LETTERE_ITA=[^;]+;/)[0] + html.match(/var CIFRE_ITA=[^;]+;/)[0];
 const preambolo = Object.entries(ambiente).map(([k, v]) => 'var ' + k + '=' + JSON.stringify(v) + ';').join('') +
   'function paywallShow(){paywallMostrato++};function updateTrialBanner(){};function conteSay(){};function streakRender(){};' + spie;
 const api = new Function(preambolo + nomiFn.map(fn).filter(Boolean).join('\n') +
@@ -152,6 +153,17 @@ verifica(parlato.length + ' frasi pronunciate, nessuna storpiata', sporche.lengt
   'simboli, maiuscole e abbreviazioni venivano compitati male: ' + sporche.slice(0, 2).join(' | '));
 verifica('gli articoli sono corretti', api.sanitizeForTTS('Solletico 1 minuto') === 'Solletico un minuto',
   'il narratore diceva "uno minuto" invece di "un minuto"');
+verifica('i nomi predefiniti si leggono in italiano',
+  api.sanitizeForTTS('G1, tocca a te.') === 'Gi uno, tocca a te.' && api.sanitizeForTTS('G2.') === 'Gi due.',
+  'chi non scriveva i nomi si sentiva chiamare "g one" all\'inglese invece di "gi uno"');
+verifica('i moltiplicatori restano moltiplicatori', /per 2/.test(api.sanitizeForTTS('Guadagni x2')),
+  'la regola sulle lettere seguite da cifra aveva trasformato "x2" in "ics due"');
+verifica('le parole con cifra in mezzo non vengono toccate',
+  api.sanitizeForTTS('Stanza B12') === 'Stanza B12',
+  'la regola era troppo larga e spezzava sigle e codici veri');
+
+verifica('due richieste identiche non si pagano due volte', /_ttsInVolo\[key\]/.test(html) && /_ttsInVolo\[key\]\s*=\s*p/.test(html),
+  'il preriscaldamento dei nomi parte da due punti e generava la stessa clip due volte a pagamento');
 
 sezione('Interfaccia');
 const bottoni = [...html.matchAll(/<button onclick="([a-zA-Z]+)\(\)"[^>]*>([^<A-Za-z][^<]*)<\/button>/g)].map(m => ({ f: m[1], i: m[2].trim() }));
@@ -164,6 +176,14 @@ verifica('bottoni icona etichettati', !/<button onclick="(showBuild|showTrade|sh
   'senza aria-label sono invisibili a chi usa uno screen reader');
 verifica('Esc non chiude i modali di gioco', /MODALI_CHIUDIBILI/.test(html) && !/MODALI_CHIUDIBILI=\[[^\]]*challengeM/.test(html),
   'chiudere la sfida con un tasto sarebbe un modo per saltare le regole');
+verifica('la prima schermata puo\' restringersi', /\.intro-scroll-container\{[^}]*min-height:0/.test(html),
+  'senza min-height:0 il blocco di testo non cedeva e spingeva il bottone Inizia fuori dallo schermo');
+verifica('la mascotte non sta nel blocco che scorre', /<div class="intro-hero">\s*<img class="conte-intro-hero"/.test(html),
+  'dentro l\'area di scorrimento il Conte veniva tagliato a meta\' sugli schermi bassi');
+verifica('il bottone Inizia non si comprime', /\.intro-cta\{[^}]*flex:0 0 auto/.test(html),
+  'con flex-shrink attivo la CTA si schiacciava fino a sparire');
+verifica('il banner Installa non copre la CTA', /var\(--banner-h/.test(html) && /--banner-h',\s*h\s*\+\s*'px'/.test(html),
+  'il banner e\' fisso in fondo e nascondeva il bottone Inizia');
 verifica('i nomi non vengono troncati a 5', /n.length>12\?n.substring\(0,11\)/.test(html),
   'Francesca diventava "Franc" mentre la voce diceva il nome intero');
 verifica('i nomi vengono ripuliti dal markup', /function nomePulito/.test(html) && /nomePulito\(E\('pn'\+i\)\.value\)/.test(html),

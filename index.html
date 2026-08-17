@@ -62,15 +62,17 @@ background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='
 color:var(--cream)
 }
 /* Install Banner PWA */
-.install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--velvet2),var(--velvet));border-top:2px solid var(--ruby);padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9999;display:none;animation:slideUp 0.3s ease}
+/* Barra piu' bassa possibile: e' fixed in fondo e ruba spazio alla prima
+   schermata, dove il bottone Inizia deve restare visibile. */
+.install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--velvet2),var(--velvet));border-top:2px solid var(--ruby);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:9999;display:none;animation:slideUp 0.3s ease}
 .install-banner.show{display:block}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .install-content{max-width:430px;margin:0 auto;display:flex;align-items:center;gap:12px}
-.install-icon{font-size:2.5rem}
+.install-icon{font-size:1.7rem}
 .install-text{flex:1}
-.install-text h4{color:var(--gold);font-size:1rem;margin-bottom:4px}
-.install-text p{color:var(--cream);font-size:0.8rem;opacity:0.8}
-.install-btn{padding:12px 20px;background:linear-gradient(145deg,var(--ruby),#7f1d1d);border:none;border-radius:10px;color:white;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:'Montserrat',sans-serif}
+.install-text h4{color:var(--gold);font-size:0.9rem;margin-bottom:2px;line-height:1.2}
+.install-text p{color:var(--cream);font-size:0.75rem;opacity:0.8;line-height:1.3}
+.install-btn{padding:10px 16px;background:linear-gradient(145deg,var(--ruby),#7f1d1d);border:none;border-radius:10px;color:white;font-weight:700;font-size:0.9rem;cursor:pointer;font-family:'Montserrat',sans-serif}
 .install-close{background:none;border:none;color:var(--cream);font-size:1.5rem;cursor:pointer;padding:8px;opacity:0.6}
 /* iOS Install Instructions */
 .ios-instructions{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center}
@@ -214,11 +216,25 @@ color:var(--cream)
 .intro-glow{position:absolute;top:50%;left:50%;width:300px;height:300px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(185,28,28,0.15) 0%,transparent 70%);animation:pulseGlow 3s ease-in-out infinite;pointer-events:none}
 @keyframes pulseGlow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.5}50%{transform:translate(-50%,-50%) scale(1.3);opacity:0.8}}
 @keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
-.intro-scroll-container{position:relative;z-index:2;flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
+/* La prima schermata deve stare in una schermata sola: la mascotte in alto e
+   il bottone in fondo non si muovono (flex:0 0 auto), il testo in mezzo e'
+   l'unica cosa che cede. Senza min-height:0 il blocco centrale non si
+   restringe sotto l'altezza del suo contenuto e spinge il bottone fuori dallo
+   schermo: e' esattamente quello che accadeva su iPhone. */
+.intro-hero{position:relative;z-index:2;flex:0 0 auto;display:flex;justify-content:center;padding:clamp(4px,1.4vh,16px) 20px 0}
+.intro-scroll-container{position:relative;z-index:2;flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(8px,1.8vh,24px) 20px}
 .intro-scroll-text{text-align:center;max-width:360px}
-.intro-scroll-text p{font-size:0.95rem;color:var(--cream);line-height:1.6;margin-bottom:20px;font-weight:500}
-.intro-scroll-text .intro-final{font-size:1.2rem;font-weight:700;margin-top:40px;color:var(--cream)}
-.intro-cta{position:relative;z-index:3;text-align:center;padding:20px;flex-shrink:0}
+.intro-scroll-text p{font-size:clamp(0.8rem,1.75vh,0.95rem);color:var(--cream);line-height:1.55;margin-bottom:clamp(8px,1.6vh,20px);font-weight:500}
+.intro-scroll-text .intro-final{font-size:clamp(1rem,2.4vh,1.2rem);font-weight:700;margin-top:clamp(10px,2.4vh,32px);color:var(--cream)}
+.intro-scroll-text p:last-child{margin-bottom:0}
+/* Su schermi bassi (o con il banner Installa aperto) i 38px del "Siete
+   pronti?" sono la differenza fra testo intero e testo tagliato. La riga e'
+   decorativa: il bottone qui sotto dice la stessa cosa. */
+/* Le regole per gli schermi bassi stanno piu' sotto, dopo .conte-intro-hero:
+   a parita' di specificita' vince l'ultima scritta. */
+/* --banner-h e' l'altezza vera del banner "Installa", misurata quando compare:
+   e' fissato in fondo e senza questo spazio coprirebbe il bottone. */
+.intro-cta{position:relative;z-index:3;text-align:center;padding:clamp(10px,1.8vh,20px) 20px;padding-bottom:calc(clamp(10px,1.8vh,20px) + var(--banner-h,0px));flex:0 0 auto}
 .intro-cta .rb{padding:14px 40px;font-size:0.95rem}
 .rb{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream);padding:16px 50px;border:none;border-radius:30px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 8px 30px rgba(185,28,28,0.5),inset 0 1px 0 rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:2px;font-family:'Montserrat',sans-serif;border:1px solid var(--ruby3)}
 .rb:active{transform:translateY(4px);box-shadow:0 4px 15px rgba(185,28,28,0.4)}
@@ -332,7 +348,17 @@ color:var(--cream)
 @keyframes conteFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes conteBounce{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(-4deg)}70%{transform:scale(.95) rotate(3deg)}100%{transform:scale(1)}}
 @keyframes conteBubble{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
-.conte-intro-hero{width:150px;height:150px;margin:0 auto 12px;display:block;filter:drop-shadow(0 10px 28px rgba(185,28,28,.4));animation:conteFloat 3s ease-in-out infinite}
+.conte-intro-hero{width:clamp(78px,16vh,150px);height:clamp(78px,16vh,150px);margin:0 auto;display:block;filter:drop-shadow(0 10px 28px rgba(185,28,28,.4));animation:conteFloat 3s ease-in-out infinite}
+/* Schermi bassi (iPhone con le barre di Safari aperte, banner "Installa" in
+   fondo, orizzontale): recupero i pixel che servono a far stare la prima
+   schermata in una schermata sola. La riga "Siete pronti?" e' decorativa e il
+   bottone qui sotto dice la stessa cosa. */
+@media (max-height:620px){
+.intro-scroll-text .intro-final:last-child{display:none}
+.conte-intro-hero{width:clamp(70px,13.5vh,110px);height:clamp(70px,13.5vh,110px)}
+.intro-scroll-container{padding-top:6px;padding-bottom:6px}
+.intro-hero{padding-top:2px}
+}
 .paywall-conte{width:100px;height:100px;margin:0 auto 6px;background-image:url('assets/mascot/conte-poses.png');background-size:200% 200%;background-position:100% 100%;filter:drop-shadow(0 6px 16px rgba(185,28,28,.5));animation:conteFloat 2.8s ease-in-out infinite}
 .conte-sprite.kiss{background-image:url('assets/mascot/conte-poses2.png');background-position:0% 0%}
 .conte-sprite.drink{background-image:url('assets/mascot/conte-poses2.png');background-position:100% 0%}
@@ -354,7 +380,8 @@ color:var(--cream)
 .trial-banner.spent u{color:var(--gold);text-decoration-thickness:1px;text-underline-offset:2px}
 .trial-banner span{color:var(--gold)}
 body.has-trial-banner .dc{padding-bottom:calc(35px + env(safe-area-inset-bottom,0px))!important}
-body.has-trial-banner .intro-cta{padding-bottom:35px}
+/* Lo spazio sotto la CTA della prima schermata lo decide misuraBanner():
+   un valore fisso qui vincerebbe per specificita' e coprirebbe il bottone. */
 @media(max-width:400px){
 .paywall-plans{max-width:260px}
 .plan-card{max-width:120px;padding:8px 6px}
@@ -866,6 +893,7 @@ if(banner&&!paywallUnlocked){
 banner.style.display='block';
 document.body.classList.add('has-trial-banner');
 updateTrialBanner();
+try{misuraBanner();}catch(e){}
 }
 }
 
@@ -873,6 +901,7 @@ function hideTrialBanner(){
 var banner=document.getElementById('trial-banner');
 if(banner)banner.style.display='none';
 document.body.classList.remove('has-trial-banner');
+try{misuraBanner();}catch(e){}
 }
 
 function updateTrialBanner(){
@@ -1115,12 +1144,14 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
 </div>
 <div class="intro-glow"></div>
+<div class="intro-hero">
+<img class="conte-intro-hero" src="assets/mascot/conte-hero.png" alt="Il Conte">
+</div>
 <div class="intro-scroll-container">
 <div class="intro-scroll-text">
-<img class="conte-intro-hero" src="assets/mascot/conte-hero.png" alt="Il Conte">
-<p class="intro-final" style="margin-top:0;margin-bottom:25px">Adultopia non è solo un gioco,<br>è un'esperienza.</p>
-<p>Prepara il palcoscenico: luci soffuse, candele profumate, drink e tutto ciò che serve. Una volta iniziato, il mondo esterno smette di esistere.</p>
-<p>Temperatura ideale, atmosfera avvolgente, nessuna distrazione. Sorprendi il partner con tutto già pronto.</p>
+<p class="intro-final" style="margin-top:0;margin-bottom:clamp(8px,1.8vh,22px)">Adultopia non è solo un gioco,<br>è un'esperienza.</p>
+<p>Prepara il palcoscenico: luci soffuse, candele, drink. Una volta iniziato, il mondo esterno smette di esistere.</p>
+<p>Nessuna distrazione, temperatura giusta. Sorprendi il partner con tutto già pronto.</p>
 <p class="intro-final">🔥 Siete pronti? 🔥</p>
 </div>
 </div>
@@ -1573,15 +1604,27 @@ function ttsDBput(key, blob){
 }
 
 // Wrapper cache-first attorno a callOpenAITTS. Stessa firma, stesso ritorno (Blob mp3).
+// Richieste identiche gia' in volo: la cache non le vede, perche' nessuna e'
+// ancora arrivata. Il preriscaldamento dei nomi parte da due punti diversi
+// all'inizio partita e generava due volte la stessa clip, a pagamento. Chi
+// chiede la stessa frase mentre la prima e' in viaggio si mette in coda su
+// quella promessa.
+var _ttsInVolo = {};
 async function cachedTTS(text, voice){
   var key = ttsKey(voice, text);
   if(_ttsMemCache[key]){ console.log('cachedTTS: HIT memoria'); return _ttsMemCache[key]; }
-  var fromDB = await ttsDBget(key);
-  if(fromDB){ console.log('cachedTTS: HIT IndexedDB'); _ttsMemCache[key] = fromDB; return fromDB; }
-  console.log('cachedTTS: MISS, genero da API');
-  var blob = await callOpenAITTS(text, voice);
-  if(blob){ _ttsMemCache[key] = blob; ttsDBput(key, blob); }
-  return blob;
+  if(_ttsInVolo[key]){ console.log('cachedTTS: HIT richiesta in volo'); return _ttsInVolo[key]; }
+  var p = (async function(){
+    var fromDB = await ttsDBget(key);
+    if(fromDB){ console.log('cachedTTS: HIT IndexedDB'); _ttsMemCache[key] = fromDB; return fromDB; }
+    console.log('cachedTTS: MISS, genero da API');
+    var blob = await callOpenAITTS(text, voice);
+    if(blob){ _ttsMemCache[key] = blob; ttsDBput(key, blob); }
+    return blob;
+  })();
+  _ttsInVolo[key] = p;
+  try{ return await p; }
+  finally{ delete _ttsInVolo[key]; }
 }
 
 // Pre-riscalda la cache con le narrazioni delle caselle fisse per la voce
@@ -2344,6 +2387,12 @@ function shouldSkipSpeak(text){
 
 // Sanitize pronuncia: corregge parole note che OpenAI TTS pronuncia male
 // in italiano (accenti mancanti, parole brand, toponimi).
+// Come si pronunciano in italiano lettere singole e cifre. Serve per i nomi
+// predefiniti dei giocatori ("G1", "G2"): letti come sigla il TTS scivola in
+// inglese e dice "g one" invece di "gi uno".
+var LETTERE_ITA={a:'A',b:'Bi',c:'Ci',d:'Di',e:'E',f:'Effe',g:'Gi',h:'Acca',i:'I',j:'I lunga',k:'Cappa',l:'Elle',m:'Emme',n:'Enne',o:'O',p:'Pi',q:'Cu',r:'Erre',s:'Esse',t:'Ti',u:'U',v:'Vu',w:'Vu doppia',x:'Ics',y:'Ipsilon',z:'Zeta'};
+var CIFRE_ITA=['zero','uno','due','tre','quattro','cinque','sei','sette','otto','nove'];
+
 function sanitizeForTTS(text){
   if(!text) return text;
   var t = String(text);
@@ -2377,6 +2426,13 @@ function sanitizeForTTS(text){
   // Moltiplicatori e simboli letti male
   t = t.replace(/\bx\s?(\d+)\b/gi, ' per $1');
   t = t.replace(/(\d+)\s*%/g, '$1 per cento');
+  // "G1" -> "Gi uno". Va DOPO la regola su "x2", altrimenti il moltiplicatore
+  // finirebbe letto "ics due". Solo lettera + una cifra attaccate: "B12" o
+  // "casa 3" non vengono toccati.
+  t = t.replace(/\b([A-Za-z])(\d)\b/g, function(m, l, n){
+    var lettera = LETTERE_ITA[l.toLowerCase()];
+    return lettera ? lettera + ' ' + CIFRE_ITA[+n] : m;
+  });
   // Puntini di sospensione, parentesi e virgolette: diventano pause naturali
   t = t.replace(/\.{3,}|\u2026/g, ', ');
   t = t.replace(/[()\[\]{}"\u00ab\u00bb\u201c\u201d]/g, ', ');
@@ -4194,10 +4250,28 @@ if(isPWA()||installBannerShown)return;
 if(localStorage.getItem('pwa_dismissed'))return;
 var banner=document.getElementById('installBanner');
 if(banner){
-setTimeout(function(){banner.classList.add('show')},3000);
+setTimeout(function(){banner.classList.add('show');misuraBanner();},3000);
 installBannerShown=true;
 }
 }
+
+// Le due barre in fondo ("Installa" e "Gratis oggi") sono fixed e si
+// sovrappongono fra loro: quella che conta e' la piu' alta. Senza sapere
+// quanto occupano coprono il bottone Inizia della prima schermata. Misuro
+// l'altezza vera (cambia col testo e con la safe area dell'iPhone) e la passo
+// al CSS. Le misure vanno prese a fine animazione: il banner entra con uno
+// slide da sotto e a meta' corsa l'altezza c'e' ma la posizione inganna.
+function misuraBanner(){
+var alte=[0];
+var inst=document.getElementById('installBanner');
+if(inst&&inst.classList.contains('show'))alte.push(inst.getBoundingClientRect().height);
+var trial=document.getElementById('trial-banner');
+if(trial&&trial.style.display!=='none')alte.push(trial.getBoundingClientRect().height);
+var h=Math.round(Math.max.apply(null,alte));
+try{document.documentElement.style.setProperty('--banner-h',h+'px');}catch(e){}
+}
+window.addEventListener('resize',misuraBanner);
+window.addEventListener('orientationchange',function(){setTimeout(misuraBanner,300);});
 
 // Handle Android/Chrome install
 window.addEventListener('beforeinstallprompt',function(e){
@@ -4228,7 +4302,8 @@ closeInstallBanner();
 function closeInstallBanner(){
 var banner=document.getElementById('installBanner');
 if(banner)banner.classList.remove('show');
-localStorage.setItem('pwa_dismissed','1');
+misuraBanner();
+try{localStorage.setItem('pwa_dismissed','1');}catch(e){}
 }
 
 // Close iOS instructions
@@ -4268,8 +4343,8 @@ navigator.serviceWorker.register('/sw.js').catch(function(e){console.log('SW non
 <div class="install-content">
 <div class="install-icon">🎮</div>
 <div class="install-text">
-<h4>Installa ADULTOPIA</h4>
-<p>Aggiungi alla Home per giocare senza barre del browser!</p>
+<h4>Installa Adultopia</h4>
+<p>A schermo pieno, senza barre.</p>
 </div>
 <button class="install-btn" onclick="installPWA()">INSTALLA</button>
 <button class="install-close" onclick="closeInstallBanner()">×</button>
