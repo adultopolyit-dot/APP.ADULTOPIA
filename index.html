@@ -2908,6 +2908,20 @@ function E(id){return document.getElementById(id)}
 function closeM(id){var el=E(id);if(el)el.classList.remove('on')}
 function toast(t,m){E('tttl').textContent=t;E('ttxt').textContent=m||'';E('toast').classList.add('on');setTimeout(function(){E('toast').classList.remove('on')},2000)}
 function shuf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+// Rimescolo che non rimette in cima la carta appena vista. Il mazzo e' corto
+// e cinque caselle diverse fanno pescare Probabilita': senza questo, alla
+// fine del giro capitava di ripescare subito la stessa carta e la serata
+// sembrava piu' povera di quanto sia. Non cambia le carte ne' le regole,
+// cambia solo l'ordine in cui tornano.
+function rimescolaSenzaRipetere(mazzo,ultimaVista){
+var m=shuf(mazzo.slice());
+if(m.length>1&&ultimaVista&&m[0]&&m[0].txt===ultimaVista.txt){
+var i=1+Math.floor(Math.random()*(m.length-1));
+var t=m[0];m[0]=m[i];m[i]=t;
+}
+return m;
+}
+var ultimaCartaImprevisti=null,ultimaCartaProbabilita=null;
 function removeOneCloth(p){if(!p||p.out||p.clothes<=0)return false;for(var j=4;j>=0;j--){if(p.clothesArr[j]){p.clothesArr[j]=0;p.clothes=p.clothesArr.reduce(function(a,b){return a+b},0);return true}}return false}
 function addOneCloth(p){if(!p||p.out||p.clothes>=5)return false;for(var j=0;j<5;j++){if(!p.clothesArr[j]){p.clothesArr[j]=1;p.clothes=p.clothesArr.reduce(function(a,b){return a+b},0);return true}}return false}
 // Commento quando qualcuno ha 1 solo vestito
@@ -3196,7 +3210,7 @@ callGameMaster(w.name+' vince l\'asta per '+a.bid+' euro!','Celebra il vincitore
 speak('Aggiudicato! '+w.name+' vince l\'asta per '+a.bid+' euro!');
 }
 }}render();saveGame();showEnd();return}a.pi++;while(a.passed.indexOf(a.ps[a.pi%a.ps.length])>=0)a.pi++;updAuct()}
-function drawC(type){var card,ctype,icon,p=G.ps[G.cp];if(type=='ch'){if(chI>=sCh.length){sCh=getCh();chI=0}card=sCh[chI++];ctype='imp';icon='⚡'}else{if(csI>=sCs.length){sCs=shuf(csC.slice());csI=0}card=sCs[csI++];ctype='prb';icon='🎴'}if(!card)return showEnd();curC=JSON.parse(JSON.stringify(card));selT=null;E('cdp').className='card-face '+ctype;E('cicon').textContent=icon;E('ctype').textContent=ctype=='imp'?'IMPREVISTI':'PROBABILITÀ';E('ctxt').textContent=card.txt;
+function drawC(type){var card,ctype,icon,p=G.ps[G.cp];if(type=='ch'){if(chI>=sCh.length){sCh=rimescolaSenzaRipetere(chC,ultimaCartaImprevisti);chI=0}card=sCh[chI++];ultimaCartaImprevisti=card;ctype='imp';icon='⚡'}else{if(csI>=sCs.length){sCs=rimescolaSenzaRipetere(csC,ultimaCartaProbabilita);csI=0}card=sCs[csI++];ultimaCartaProbabilita=card;ctype='prb';icon='🎴'}if(!card)return showEnd();curC=JSON.parse(JSON.stringify(card));selT=null;E('cdp').className='card-face '+ctype;E('cicon').textContent=icon;E('ctype').textContent=ctype=='imp'?'IMPREVISTI':'PROBABILITÀ';E('ctxt').textContent=card.txt;
 // Nome giocatore + testo della carta: niente annuncio del tipo di carta.
 // (NON leggere carte strip - la musica bloccherebbe)
 if(!card.strip){
