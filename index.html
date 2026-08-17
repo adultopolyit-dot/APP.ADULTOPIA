@@ -558,7 +558,7 @@ async function removeDevice(deviceIdToRemove){
 var btn=event.target;
 btn.disabled=true;btn.textContent='...';
 try{
-var res=await fetch('/.netlify/functions/remove-device',{
+var res=await fetchConScadenza('/.netlify/functions/remove-device',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({email:currentUserEmail,deviceIdToRemove:deviceIdToRemove,currentDeviceId:getDeviceId()})
