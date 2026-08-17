@@ -3195,6 +3195,15 @@ E('tpWho').textContent=whoText;
 E('tpTxt').textContent=txt;
 E('timerPop').classList.add('on');
 document.body.classList.add('timer-active');
+// Il tempo si legge dall'orologio, non si conta a battiti. Prima ogni battito
+// toglieva un secondo: quando il telefono si blocca o l'app va in secondo
+// piano i browser rallentano o sospendono i contatori, e un massaggio da tre
+// minuti poteva durarne molti di piu'. In questo gioco il telefono si posa
+// sul comodino proprio durante il timer, quindi era il caso normale, non
+// quello raro. Ora i battiti servono solo a ridisegnare i numeri: la fine e'
+// decisa dall'ora di scadenza e arriva puntuale anche dopo una pausa.
+var scadenza=Date.now()+sec*1000;
+window._timerScadenza=scadenza;
 var rem=sec;
 updTPD(rem);
 window._tCb=cb;
@@ -3205,19 +3214,28 @@ window._timerWho=whoText;
 startTimerEntertainment(sec);
 // Timer principale
 if(TM.main)clearInterval(TM.main);
-TM.main=setInterval(function(){
-if(--rem<=0){
-clearInterval(TM.main);TM.main=null;
+function battitoTimer(){
+rem=Math.max(0,Math.round((scadenza-Date.now())/1000));
+if(rem<=0){
+if(TM.main){clearInterval(TM.main);TM.main=null}
 stopTimerEntertainment();
 // NON fermare audio - lascia finire il dialogo
 E('timerPop').classList.remove('on');
 document.body.classList.remove('timer-active');
-if(window._tCb)window._tCb()
+updTPD(0);
+var cb2=window._tCb;window._tCb=null;
+if(cb2)cb2();
+return;
 }
-updTPD(rem)
-},1000);
+updTPD(rem);
 }
-function skipTimer(){if(TM.main)clearInterval(TM.main);TM.main=null;if(TM.gm){clearInterval(TM.gm);TM.gm=null}stopTimerEntertainment();stopSpeaking();E('timerPop').classList.remove('on');document.body.classList.remove('timer-active');stopStripMusic();if(window._tCb)window._tCb();else showEnd()}
+TM.main=setInterval(battitoTimer,1000);
+// Al ritorno in primo piano si ricalcola subito, senza aspettare il battito:
+// riaccendendo lo schermo il numero mostrato e' gia' quello giusto.
+window._timerRisveglio=function(){if(TM.main)battitoTimer()};
+document.addEventListener('visibilitychange',window._timerRisveglio);
+}
+function skipTimer(){if(TM.main)clearInterval(TM.main);TM.main=null;if(TM.gm){clearInterval(TM.gm);TM.gm=null}if(window._timerRisveglio){document.removeEventListener('visibilitychange',window._timerRisveglio);window._timerRisveglio=null}stopTimerEntertainment();stopSpeaking();E('timerPop').classList.remove('on');document.body.classList.remove('timer-active');stopStripMusic();var cb=window._tCb;window._tCb=null;if(cb)cb();else showEnd()}
 function updTPD(s){E('tpDisp').textContent=(Math.floor(s/60)+'').padStart(2,'0')+':'+(s%60+'').padStart(2,'0')}
 function landProp(pos){pend={pos:pos};var sp=BD[pos];if(!sp||!sp.cn)return showEnd();var c=PC[sp.cn];if(!c)return showEnd();if(G.props[pos]){var pr=G.props[pos],owner=pr.owner;if(owner==G.cp||pr.mort){if(sp.special=='regola'){if(G.posRules&&G.posRules[pos]){showPosRule(pos);return}else{openCreateRule();return}}else showChallenge(sp,pos);return}var rent=calcRent(pos);G.ps[G.cp].money-=rent;G.ps[owner].money+=rent;toast('💸','-'+rent+'€');addHist(shortName(G.ps[G.cp].name)+' paga '+rent+'€');
 render();saveGame();chkOver();if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}else{/* Proprieta' libera: prima si esegue la sfida della casella, l'acquisto arriva dopo (vedi showEnd) */pendBuy={pos:pos,c:c,sp:sp};if(sp.special=='regola'&&G.posRules&&G.posRules[pos]){showPosRule(pos)}else{showChallenge(sp,pos)}}}

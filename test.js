@@ -161,6 +161,24 @@ verifica('anche i salvataggi vecchi vengono ripuliti', /p\.name=nomePulito\(p\.n
 verifica('il salvataggio viene validato prima di essere usato', /function salvataggioUsabile/.test(html),
   'un salvataggio incompleto apriva la schermata di gioco e poi crollava');
 
+sezione('Timer');
+verifica('il tempo si legge dall\'orologio, non dai battiti', /var scadenza=Date\.now\(\)\+sec\*1000/.test(html),
+  'scalando un contatore a ogni battito, col telefono bloccato un massaggio da 3 minuti non finiva entro 10 (i browser rallentano i contatori in secondo piano)');
+verifica('il timer si ricalcola al ritorno in primo piano', /visibilitychange',window\._timerRisveglio/.test(html),
+  'riaccendendo lo schermo il numero mostrato restava quello vecchio fino al battito successivo');
+(() => {
+  // Orologio finto: lo schermo si blocca dopo 5s e i battiti passano a uno al minuto.
+  const battiti = [];
+  for (let t = 1000; t <= 5000; t += 1000) battiti.push(t);
+  for (let t = 65000; t <= 600000; t += 60000) battiti.push(t);
+  const scadenza = 180 * 1000;
+  let fine = null;
+  for (const b of battiti) { if (Math.max(0, Math.round((scadenza - b) / 1000)) <= 0) { fine = b; break; } }
+  verifica('un massaggio da 3 minuti finisce entro 4 anche col telefono bloccato',
+    fine !== null && fine <= 240000,
+    'col vecchio conteggio non finiva entro 10 minuti simulati');
+})();
+
 sezione('Peso e prestazioni');
 verifica('niente immagini base64 nell\'HTML', !/data:image\/(png|jpe?g);base64/.test(html),
   'il logo inline pesava 91 KB, il 28% del file');
