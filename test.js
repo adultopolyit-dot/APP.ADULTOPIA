@@ -137,6 +137,12 @@ verifica('Esc non chiude i modali di gioco', /MODALI_CHIUDIBILI/.test(html) && !
   'chiudere la sfida con un tasto sarebbe un modo per saltare le regole');
 verifica('i nomi non vengono troncati a 5', /n.length>12\?n.substring\(0,11\)/.test(html),
   'Francesca diventava "Franc" mentre la voce diceva il nome intero');
+verifica('i nomi vengono ripuliti dal markup', /function nomePulito/.test(html) && /nomePulito\(E\('pn'\+i\)\.value\)/.test(html),
+  'un nome come "Fra<b>" apriva un tag e sballava la struttura della pagina');
+verifica('anche i salvataggi vecchi vengono ripuliti', /p\.name=nomePulito\(p\.name\)/.test(html),
+  'i nomi con markup restavano salvati e tornavano a ogni partita ripresa');
+verifica('il salvataggio viene validato prima di essere usato', /function salvataggioUsabile/.test(html),
+  'un salvataggio incompleto apriva la schermata di gioco e poi crollava');
 
 sezione('Peso e prestazioni');
 verifica('niente immagini base64 nell\'HTML', !/data:image\/(png|jpe?g);base64/.test(html),

@@ -2901,6 +2901,12 @@ function isFemale(name){if(!name)return false;var n=name.toLowerCase().trim();if
 // Prima tagliava a 5 caratteri: Giulia diventava "Giuli", Francesca "Franc",
 // Alessandro "Aless". Sembravano errori di battitura, e il narratore intanto
 // pronunciava il nome intero. Ora passa il nome vero fino a 12 caratteri.
+// I nomi dei giocatori finiscono dentro innerHTML in una trentina di punti.
+// Un nome che contiene < o > apre un tag e sballa la struttura della pagina:
+// con "Fra<b>" il grassetto mai chiuso finiva per avvolgere anche soldi e
+// posizione. Si ripuliscono una volta sola in ingresso, invece di rincorrere
+// trenta punti di stampa. La e commerciale resta, perche' in un nome ci sta.
+function nomePulito(n){return String(n==null?"":n).replace(/[<>]/g,"").trim().slice(0,20)||null}
 function shortName(n){return !n?'?':(n.length>12?n.substring(0,11)+'…':n)}
 var CLOTHES_M=['🩲','👕','👖','🧦','👟'],CLOTHES_F=['👙','👚','👗','🧦','👠'];
 function getClothes(f){return f?CLOTHES_F:CLOTHES_M}
@@ -2983,7 +2989,9 @@ try{localStorage.removeItem('adultopia_save')}catch(e){}
 var lb=E('loadBtn');if(lb)lb.style.display='none';
 return;
 }
-G=caricato;if(!G.history)G.history=[];if(!G.createdRules)G.createdRules=[];if(!G.posRules)G.posRules={};sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('intro').classList.remove('on');E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();try{prewarmPlayerNames();}catch(e){}}}catch(e){}}
+G=caricato;
+/* Anche i salvataggi vecchi possono contenere nomi con markup. */
+try{G.ps.forEach(function(p){p.name=nomePulito(p.name)||"Giocatore"})}catch(e){}if(!G.history)G.history=[];if(!G.createdRules)G.createdRules=[];if(!G.posRules)G.posRules={};sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('intro').classList.remove('on');E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();try{prewarmPlayerNames();}catch(e){}}}catch(e){}}
 // Il bottone "riprendi partita" compare solo se c'e' davvero qualcosa da
 // riprendere: prima bastava un array di giocatori non vuoto, e un salvataggio
 // rotto offriva un invito che portava a una schermata rotta.
@@ -3057,7 +3065,7 @@ if(aiEnabled&&aiApiKey){
 setTimeout(readIntroAI,1500);
 }
 }
-function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=E('pn'+i).value||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(precacheContePoses,1200);
+function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=nomePulito(E('pn'+i).value)||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(precacheContePoses,1200);
 /* La voce si scalda da subito, non alla prima frase: fra l'inizio partita e
    il primo lancio passano secondi che prima venivano sprecati, e la prima
    casella arrivava dopo tre secondi di silenzio. */
