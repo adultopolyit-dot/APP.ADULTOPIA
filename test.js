@@ -58,7 +58,9 @@ global.document = { getElementById: () => null };
 const ambiente = {
   MAX_FREE_ROLLS: 3, SHARE_BONUS_ROLLS: 3,
   TRIAL_STORAGE_KEY: 'adultopia_trial_rolls', SHARE_BONUS_KEY: 'adultopia_share_bonus', STREAK_KEY: 'adultopia_streak',
-  paywallUnlocked: false, trialRollsUsed: 0, paywallMostrato: 0
+  paywallUnlocked: false, trialRollsUsed: 0, paywallMostrato: 0,
+  // copie in memoria del conteggio, difendono dai browser che rifiutano le scritture
+  _trialMemoria: null, _bonusMemoria: null
 };
 const nomiFn = ['trialTodayKey', 'trialGetUsed', 'trialSetUsed', 'shareBonusGet', 'shareBonusSet', 'trialMax',
   'incrementTrialRoll', 'streakGet', 'streakDayDiff', 'streakTouch', 'streakCelebrate', 'sembraItaliano',
@@ -79,6 +81,21 @@ api.shareBonusSet(1);
 let extra = 0;
 for (let i = 0; i < 5; i++) if (api.incrementTrialRoll()) extra++;
 verifica('la condivisione regala 3 lanci', extra === 3, 'e\' l\'alternativa gratuita al paywall e il motore virale');
+
+// Memoria del browser che rifiuta le scritture: navigazione privata, spazio
+// esaurito. Le letture funzionano, le scritture no.
+(() => {
+  const setVero = global.localStorage.setItem;
+  for (const k of Object.keys(store)) delete store[k];
+  const api2 = new Function(preambolo + nomiFn.map(fn).filter(Boolean).join('\n') +
+    'return {incrementTrialRoll:incrementTrialRoll}')();
+  global.localStorage.setItem = () => { const e = new Error('QuotaExceededError'); e.name = 'QuotaExceededError'; throw e; };
+  let consentiti = 0;
+  for (let i = 0; i < 8; i++) if (api2.incrementTrialRoll()) consentiti++;
+  global.localStorage.setItem = setVero;
+  verifica('a memoria bloccata i lanci restano 3', consentiti === 3,
+    'le scritture fallivano in silenzio, il contatore restava a zero e bastava una finestra privata per giocare gratis all\'infinito (visti ' + consentiti + ' lanci su 8)');
+})();
 
 sezione('Streak');
 const ymd = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();

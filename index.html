@@ -579,19 +579,48 @@ btn.disabled=false;btn.textContent='Rimuovi';
 // ========== END DEVICE MANAGEMENT ==========
 
 function trialTodayKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+// Copia in memoria del conteggio. Quando il browser rifiuta le scritture
+// (navigazione privata, spazio esaurito) il valore su disco resta a zero e i
+// lanci gratuiti diventavano infiniti: bastava aprire una finestra privata
+// per giocare per sempre senza pagare. La copia in memoria non si puo'
+// scrivere su disco ma sopravvive alla sessione, che e' quanto basta.
+var _trialMemoria=null;
 function trialGetUsed(){
-var raw=localStorage.getItem(TRIAL_STORAGE_KEY);
-if(!raw)return 0;
-try{var o=JSON.parse(raw);if(o&&typeof o==='object'){return o.d===trialTodayKey()?(o.used||0):0;}}catch(e){}
-var n=parseInt(raw);return isNaN(n)?0:n; // retrocompat vecchio formato intero
+var daDisco=0;
+var raw=null;
+try{raw=localStorage.getItem(TRIAL_STORAGE_KEY)}catch(e){}
+if(raw){
+var letto=null;
+try{var o=JSON.parse(raw);if(o&&typeof o==='object')letto=(o.d===trialTodayKey()?(o.used||0):0)}catch(e){}
+if(letto===null){var n=parseInt(raw);letto=isNaN(n)?0:n} // retrocompat vecchio formato intero
+daDisco=letto;
 }
-function trialSetUsed(n){try{localStorage.setItem(TRIAL_STORAGE_KEY,JSON.stringify({d:trialTodayKey(),used:n}));}catch(e){}}
+// Vince il valore piu' alto fra disco e memoria, ma solo se la copia in
+// memoria e' di oggi: domani il conteggio deve ripartire davvero.
+if(_trialMemoria&&_trialMemoria.d===trialTodayKey()&&_trialMemoria.used>daDisco)return _trialMemoria.used;
+return daDisco;
+}
+function trialSetUsed(n){
+_trialMemoria={d:trialTodayKey(),used:n};
+try{localStorage.setItem(TRIAL_STORAGE_KEY,JSON.stringify({d:trialTodayKey(),used:n}));}catch(e){}
+}
 // Bonus condivisione: chi invita la serata a qualcun altro si guadagna altri
 // lanci per oggi. E' l'alternativa gratuita al paywall (e il motore virale).
 var SHARE_BONUS_KEY='adultopia_share_bonus';
 var SHARE_BONUS_ROLLS=3;
-function shareBonusGet(){try{var o=JSON.parse(localStorage.getItem(SHARE_BONUS_KEY)||'{}');return o.d===trialTodayKey()?(o.n||0):0}catch(e){return 0}}
-function shareBonusSet(n){try{localStorage.setItem(SHARE_BONUS_KEY,JSON.stringify({d:trialTodayKey(),n:n}))}catch(e){}}
+// Stessa protezione: senza, a scritture bloccate il bonus si poteva
+// riscuotere all'infinito condividendo ogni volta.
+var _bonusMemoria=null;
+function shareBonusGet(){
+var daDisco=0;
+try{var o=JSON.parse(localStorage.getItem(SHARE_BONUS_KEY)||'{}');daDisco=(o.d===trialTodayKey()?(o.n||0):0)}catch(e){}
+if(_bonusMemoria&&_bonusMemoria.d===trialTodayKey()&&_bonusMemoria.n>daDisco)return _bonusMemoria.n;
+return daDisco;
+}
+function shareBonusSet(n){
+_bonusMemoria={d:trialTodayKey(),n:n};
+try{localStorage.setItem(SHARE_BONUS_KEY,JSON.stringify({d:trialTodayKey(),n:n}))}catch(e){}
+}
 // Tetto dei lanci di oggi: base + eventuale bonus condivisione.
 function trialMax(){return MAX_FREE_ROLLS+(shareBonusGet()?SHARE_BONUS_ROLLS:0)}
 
