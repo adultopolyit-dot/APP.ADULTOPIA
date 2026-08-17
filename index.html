@@ -2959,8 +2959,35 @@ var csC=[{txt:'Rimetti 1 vestito!',act:'claddon'},{txt:'Fai carezze sensuali al 
 var sCh,sCs,chI=0,csI=0;
 function getCh(){return shuf(chC.slice())}
 function saveGame(){try{localStorage.setItem('adultopia_save',JSON.stringify(G))}catch(e){}}
-function loadGame(){try{var s=localStorage.getItem('adultopia_save');if(s){G=JSON.parse(s);if(!G.history)G.history=[];if(!G.createdRules)G.createdRules=[];if(!G.posRules)G.posRules={};sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('intro').classList.remove('on');E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();try{prewarmPlayerNames();}catch(e){}}}catch(e){}}
-function checkSave(){try{var s=localStorage.getItem('adultopia_save');if(s&&JSON.parse(s).ps.length>0)E('loadBtn').style.display='block'}catch(e){}}
+// Un salvataggio con JSON spezzato veniva scartato, ma uno strutturalmente
+// incompleto passava il controllo: apriva la schermata di gioco e poi il
+// disegno andava in eccezione, lasciando la coppia davanti a un gioco rotto
+// senza via d'uscita. Succede coi salvataggi di versioni precedenti o
+// scritti a meta'. Meglio ripartire puliti che mostrare macerie.
+function salvataggioUsabile(g){
+if(!g||typeof g!=="object")return false;
+if(!Array.isArray(g.ps)||g.ps.length<2)return false;
+if(typeof g.cp!=="number"||g.cp<0||g.cp>=g.ps.length)return false;
+for(var i=0;i<g.ps.length;i++){
+var p=g.ps[i];
+if(!p||typeof p.name!=="string")return false;
+if(typeof p.money!=="number"||typeof p.pos!=="number")return false;
+if(!Array.isArray(p.clothesArr)||!Array.isArray(p.props))return false;
+}
+return true;
+}
+function loadGame(){try{var s=localStorage.getItem('adultopia_save');if(s){var caricato=JSON.parse(s);
+if(!salvataggioUsabile(caricato)){
+console.log('Salvataggio non utilizzabile: riparto pulito');
+try{localStorage.removeItem('adultopia_save')}catch(e){}
+var lb=E('loadBtn');if(lb)lb.style.display='none';
+return;
+}
+G=caricato;if(!G.history)G.history=[];if(!G.createdRules)G.createdRules=[];if(!G.posRules)G.posRules={};sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('intro').classList.remove('on');E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();try{prewarmPlayerNames();}catch(e){}}}catch(e){}}
+// Il bottone "riprendi partita" compare solo se c'e' davvero qualcosa da
+// riprendere: prima bastava un array di giocatori non vuoto, e un salvataggio
+// rotto offriva un invito che portava a una schermata rotta.
+function checkSave(){try{var s=localStorage.getItem('adultopia_save');if(s&&salvataggioUsabile(JSON.parse(s)))E('loadBtn').style.display='block'}catch(e){}}
 function saveAndExit(){saveGame();toast('💾','Salvato!');stopBgMusic();stopSpeaking();stopIntroAudio();E('game').classList.remove('on');E('setup').classList.remove('on');E('intro').classList.add('on');E('hdrBtns').style.display='none'}
 function confirmSave(){saveGame();toast('💾','Salvato!')}
 checkSave();
