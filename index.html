@@ -1543,9 +1543,14 @@ async function cachedTTS(text, voice){
 var _prewarmDone = {};
 async function prewarmBoardNarration(voice){
   voice = voice || narratorVoice;
-  if(!voice || _prewarmDone[voice]) return;
+  if(!voice) return;
   if(typeof FULL_TEXT === 'undefined') return;
-  _prewarmDone[voice] = true;
+  // La chiave distingue prova e accesso completo: chi sblocca dopo aver
+  // giocato gratis fa scaldare tutto il resto, senza restare col mezzo
+  // riscaldamento della prova.
+  var chiaveFatto = voice + (paywallUnlocked ? '|completo' : '|prova');
+  if(_prewarmDone[chiaveFatto]) return;
+  _prewarmDone[chiaveFatto] = true;
   try{
     // ORDINE DI PRIORITA'. Generare una frase nuova costa circa 3 secondi di
     // attesa, quindi conta quali si scaldano per prime. Con due dadi dalla
@@ -1568,20 +1573,28 @@ async function prewarmBoardNarration(voice){
       var n=parseInt(k,10);
       aggiungi((n>=3&&n<=13)?primoLancio:resto, k);
     }
-    var texts = primoLancio.concat(resto);
-    // Prewarm anche le carte Imprevisti e Probabilita': ora la voce legge
-    // solo il testo della carta (statico), quindi e' tutto cache-abile.
-    try{
-      var cards=[];
-      if(typeof csC!=='undefined')cards=cards.concat(csC);
-      if(typeof getCh==='function')cards=cards.concat(getCh());
-      for(var ci=0;ci<cards.length;ci++){
-        if(cards[ci]&&cards[ci].txt&&!cards[ci].strip){
-          var ct=cleanTextForTTS(sanitizeForTTS(cards[ci].txt));
-          if(ct)texts.push(ct);
+    // Chi non ha ancora sbloccato ha tre lanci: scaldare tutto il tabellone
+    // significa pagare 85 clip a chi ne sentira' al massimo una manciata, e
+    // il conto si moltiplica se prova piu' voci. Durante la prova si scalda
+    // solo cio' che e' davvero raggiungibile (18 clip); il resto arriva
+    // quando l'accesso e' sbloccato. Nessuna differenza percepita: le caselle
+    // fuori portata non possono uscire.
+    var texts = paywallUnlocked ? primoLancio.concat(resto) : primoLancio.slice();
+    // Le carte Imprevisti e Probabilita' sono testo statico e quindi
+    // cache-abile, ma anche loro solo per chi ha sbloccato.
+    if(paywallUnlocked){
+      try{
+        var cards=[];
+        if(typeof csC!=='undefined')cards=cards.concat(csC);
+        if(typeof getCh==='function')cards=cards.concat(getCh());
+        for(var ci=0;ci<cards.length;ci++){
+          if(cards[ci]&&cards[ci].txt&&!cards[ci].strip){
+            var ct=cleanTextForTTS(sanitizeForTTS(cards[ci].txt));
+            if(ct)texts.push(ct);
+          }
         }
-      }
-    }catch(e){}
+      }catch(e){}
+    }
     for(var i = 0; i < texts.length; i++){
       var key = ttsKey(voice, texts[i]);
       if(_ttsMemCache[key]) continue;
