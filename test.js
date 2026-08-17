@@ -97,6 +97,11 @@ verifica('la condivisione regala 3 lanci', extra === 3, 'e\' l\'alternativa grat
     'le scritture fallivano in silenzio, il contatore restava a zero e bastava una finestra privata per giocare gratis all\'infinito (visti ' + consentiti + ' lanci su 8)');
 })();
 
+verifica('il salvataggio fallito avvisa l\'utente', /_salvataggioRotto/.test(html) && /non sta salvando la partita/.test(html),
+  'in navigazione privata la scrittura lancia e l\'errore veniva ingoiato: la coppia chiudeva l\'app convinta di poter riprendere');
+verifica('l\'avviso non si ripete a ogni mossa', /if\(!_salvataggioRotto\)\{\n_salvataggioRotto=true;/.test(html),
+  'si salva a ogni mossa: un avviso per volta sarebbe peggio del problema');
+
 sezione('Streak');
 const ymd = d => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
 const ieri = new Date(); ieri.setDate(ieri.getDate() - 1);

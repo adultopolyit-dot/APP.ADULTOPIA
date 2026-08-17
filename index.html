@@ -2993,7 +2993,24 @@ var chC=[{txt:'Torna indietro di 3 caselle!',act:'move',v:-3},{txt:'Massaggio pe
 var csC=[{txt:'Rimetti 1 vestito!',act:'claddon'},{txt:'Fai carezze sensuali al partner per 3 minuti! Esplora collo, schiena, braccia e gambe con tocco delicato.',act:'recv',tm:180,nt:1},{txt:'Togli 1 vestito!',act:'cl',v:-1},{txt:'Hai avuto un bambino per errore! Paga 100€ al partner ogni volta che passi dal Via!',act:'baby',nt:1},{txt:'Vai al Via e ricevi 200 euro!',act:'goto'},{txt:'Spogliarello sexy per 3 minuti!',act:'strip',tm:180,strip:1,nt:1},{txt:'Mani legate per 2 minuti!',act:'tied',tm:120,nt:1},{txt:'Dai uno schiaffo sul sedere al tuo partner!',act:'spank',nt:1}];
 var sCh,sCs,chI=0,csI=0;
 function getCh(){return shuf(chC.slice())}
-function saveGame(){try{localStorage.setItem('adultopia_save',JSON.stringify(G))}catch(e){}}
+// Il salvataggio falliva in silenzio. In navigazione privata su Safari, o a
+// spazio esaurito, la scrittura lancia e l'errore veniva ingoiato: la coppia
+// chiudeva l'app convinta di poter riprendere, e trovava tutto perso. Ora
+// avvisa, ma una volta sola per sessione: durante una serata si salva a ogni
+// mossa (ventinove punti nel codice) e un avviso ripetuto sarebbe peggio del
+// problema.
+var _salvataggioRotto=false;
+function saveGame(){
+try{
+localStorage.setItem('adultopia_save',JSON.stringify(G));
+_salvataggioRotto=false;
+}catch(e){
+if(!_salvataggioRotto){
+_salvataggioRotto=true;
+try{toast('⚠️','Questo browser non sta salvando la partita: se chiudi l\'app la perdi.')}catch(_e){}
+}
+}
+}
 // Un salvataggio con JSON spezzato veniva scartato, ma uno strutturalmente
 // incompleto passava il controllo: apriva la schermata di gioco e poi il
 // disegno andava in eccezione, lasciando la coppia davanti a un gioco rotto
