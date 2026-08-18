@@ -255,6 +255,7 @@ color:var(--cream)
 .mb.gr{background:linear-gradient(145deg,#22c55e,#16a34a);color:#fff;border:1px solid #44dd77}
 .mb.o{background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;border:1px solid #e8c547}
 .mb:active{transform:translateY(2px)}
+.mb:disabled{opacity:0.35;cursor:default}
 .card-face{border-radius:14px;padding:25px;text-align:center}
 .card-face.imp{background:linear-gradient(145deg,#f97316,#c2410c)}
 .card-face.prb{background:linear-gradient(145deg,#a855f7,#7c3aed)}
@@ -372,6 +373,41 @@ color:var(--cream)
 .intro-scroll-text p{margin-bottom:6px;line-height:1.45}
 .intro-cta{padding-top:8px;padding-bottom:calc(8px + var(--banner-h,0px))}
 }
+/* Accesso secondario dall'intro: chi ha la scatola non deve cercarlo. */
+.intro-ghost{display:block;margin:10px auto 0;background:none;border:1px solid rgba(212,175,55,.45);color:var(--gold);padding:10px 22px;border-radius:24px;font-size:.78rem;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Montserrat',sans-serif;text-transform:uppercase}
+.intro-ghost:active{transform:translateY(2px)}
+
+/* ===== MODALITA' TABELLONE (l'app fa da banco per il gioco fisico) ===== */
+.hyb-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.hyb-back{width:44px;height:44px;flex:0 0 auto;border-radius:12px;background:linear-gradient(145deg,var(--velvet3),var(--velvet));border:1px solid rgba(185,28,28,.4);color:var(--cream);font-size:1.2rem;cursor:pointer}
+.hyb-sub{text-align:center;color:rgba(245,245,220,.65);font-size:.85rem;line-height:1.5;margin:4px 0 16px}
+.hyb-players{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.hyb-pl{background:linear-gradient(145deg,var(--velvet2),var(--velvet));border:1px solid rgba(185,28,28,.25);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;box-shadow:var(--sh)}
+.hyb-pl .n{font-weight:700;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hyb-pl .m{color:var(--gold);font-weight:700;font-size:1rem;margin-top:2px}
+.hyb-pl .m.neg{color:#ef4444}
+.hyb-tot{color:rgba(245,245,220,.7);font-size:.85rem;margin-top:8px;min-height:1.2em}
+.hyb-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.hyb-card-btn{padding:18px 10px;border-radius:14px;font-weight:800;font-size:.85rem;letter-spacing:1px;font-family:'Montserrat',sans-serif;cursor:pointer;text-transform:uppercase}
+.hyb-card-btn.imp{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream);border:1px solid var(--ruby3)}
+.hyb-card-btn.prob{background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;border:1px solid #e8c547}
+.hyb-card-btn:active{transform:translateY(2px)}
+.hyb-reset{display:block;margin:18px auto 0;background:none;border:none;color:rgba(245,245,220,.45);font-size:.8rem;text-decoration:underline;cursor:pointer;font-family:'Montserrat',sans-serif}
+.hyb-drawn{font-size:1.05rem;line-height:1.55;color:var(--cream);text-align:center;padding:14px 4px}
+.hyb-prop{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:10px;background:var(--velvet);margin-bottom:6px;border:1px solid rgba(185,28,28,.15);cursor:pointer;font-size:.83rem}
+.hyb-prop:active{background:var(--velvet3)}
+.hyb-dot{width:16px;height:16px;border-radius:5px;flex:0 0 auto}
+.hyb-ptxt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hyb-owner{flex:0 0 auto;font-size:.75rem;color:var(--gold);font-weight:700}
+.hyb-sel{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.hyb-sel button{flex:1;min-width:70px;padding:12px 8px;border-radius:10px;background:linear-gradient(145deg,var(--velvet3),var(--velvet));border:1px solid rgba(212,175,55,.5);color:var(--gold);font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif}
+.hyb-money{text-align:center;font-size:1.8rem;font-weight:800;color:var(--gold);margin:4px 0 12px;font-family:'Montserrat',sans-serif}
+.hyb-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hyb-quick button{padding:13px 8px;border-radius:10px;border:1px solid rgba(185,28,28,.35);background:linear-gradient(145deg,var(--velvet2),var(--velvet));color:var(--cream);font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.8rem}
+.hyb-amt-row{display:flex;gap:8px;margin-top:10px}
+.hyb-amt-row input{flex:1;min-width:0;padding:12px;border-radius:10px;border:1px solid rgba(185,28,28,.4);background:var(--velvet);color:var(--cream);font-size:1rem;font-family:'Montserrat',sans-serif}
+.hyb-amt-row button{width:52px;flex:0 0 auto;border-radius:10px;border:1px solid rgba(185,28,28,.35);background:linear-gradient(145deg,var(--velvet3),var(--velvet));color:var(--cream);font-size:1.2rem;font-weight:700;cursor:pointer}
+.hyb-sub2{color:rgba(245,245,220,.6);font-size:.8rem;margin-top:14px;text-align:center}
 .paywall-conte{width:100px;height:100px;margin:0 auto 6px;background-image:url('assets/mascot/conte-poses.png');background-size:200% 200%;background-position:100% 100%;filter:drop-shadow(0 6px 16px rgba(185,28,28,.5));animation:conteFloat 2.8s ease-in-out infinite}
 .conte-sprite.kiss{background-image:url('assets/mascot/conte-poses2.png');background-position:0% 0%}
 .conte-sprite.drink{background-image:url('assets/mascot/conte-poses2.png');background-position:100% 0%}
@@ -1172,6 +1208,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 </div>
 <div class="intro-cta">
 <button class="rb" onclick="skipIntro()">Inizia</button>
+<button class="intro-ghost" onclick="goHybrid()">🎲 Ho il gioco da tavolo</button>
 </div>
 </div>
 <div id="setup" class="scr">
@@ -1182,6 +1219,9 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 
 <!-- GIOCO FISICO -->
 <div class="physical-game-cta">
+<button class="btn-physical" onclick="goHybrid()">
+🎲 GIOCA COL TUO TABELLONE
+</button>
 <button class="btn-physical" onclick="window.open('https://www.adultopia.it/products/adultopia','_blank')">
 🎁 COMPRA IL GIOCO DA TAVOLO ORIGINALE
 </button>
@@ -1208,6 +1248,35 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 </a>
 </div>
 
+</div>
+<!-- MODALITA' TABELLONE: l'app fa da banco per chi gioca sul tabellone fisico.
+     Dadi, carte Imprevisti/Probabilita', registro proprieta' e cassa. Stesse
+     regole e stessi dati della partita digitale (BD, PC, chC, csC). -->
+<div id="hybrid" class="scr">
+<div class="hyb-head">
+<button class="hyb-back" onclick="hybEsci()" aria-label="Torna al menu" title="Torna al menu">←</button>
+<h2 class="ttl" style="flex:1;margin:0">✦ TABELLONE ✦</h2>
+<span style="width:44px;flex:0 0 auto"></span>
+</div>
+<div id="hybSetup">
+<p class="hyb-sub">L'app fa da banco: dadi, carte e proprietà.<br>A voi il tabellone e le pedine.</p>
+<div class="psel">
+<div class="po" onclick="hybSelN(2,this)"><span>2</span><small>Intimo</small></div>
+<div class="po" onclick="hybSelN(3,this)"><span>3</span><small>Piccante</small></div>
+<div class="po" onclick="hybSelN(4,this)"><span>4</span><small>Bollente</small></div>
+</div>
+<div id="hybNames" class="pn"></div>
+</div>
+<div id="hybMain" style="display:none">
+<div id="hybPlayers" class="hyb-players"></div>
+<div class="dc" style="margin-bottom:0;padding-bottom:18px"><div class="dd"><div class="die" id="hd1">✦</div><div class="die" id="hd2">✦</div></div><button class="rb" id="hrbtn" onclick="hybRoll()">✦ TIRA I DADI ✦</button><div id="hybTot" class="hyb-tot"></div></div>
+<div class="hyb-cards">
+<button class="hyb-card-btn imp" onclick="hybPesca('ch')">⚡ Imprevisti</button>
+<button class="hyb-card-btn prob" onclick="hybPesca('cs')">🎴 Probabilità</button>
+</div>
+<button class="btn s" style="margin-top:0" onclick="hybApriProps()">🏠 PROPRIETÀ</button>
+<button class="hyb-reset" onclick="hybNuova()">Nuova partita</button>
+</div>
 </div>
 <div id="game" class="scr">
 <div class="gh">
@@ -1238,6 +1307,39 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div id="timerPop" class="timer-popup"><div class="td" id="tpDisp">00:00</div><p id="tpWho" style="color:var(--gold);font-size:1.1rem;font-weight:bold"></p><p id="tpTxt" style="color:rgba(245,245,220,0.9);font-size:1rem"></p><button class="tsk" onclick="skipTimer()">⏭️ SALTA</button></div>
 
 <div id="buyPropM" class="mdl"><div class="mc"><div class="mh"><h2>🏠 PROPRIETÀ DISPONIBILE</h2></div><div id="buyPropCard"></div><div id="buyPropBtns"></div></div></div>
+<!-- Modali della modalita' tabellone. L'ordine conta: il foglio della singola
+     proprieta' sta DOPO il registro cosi' gli si sovrappone. -->
+<div id="hybCardM" class="mdl"><div class="mc">
+<div class="mh"><h2 id="hybCardTitle">CARTA</h2></div>
+<div id="hybCardTxt" class="hyb-drawn"></div>
+<button class="mb o" id="hybCardTimer" style="display:none" onclick="hybCartaTimer()">⏱️ AVVIA TIMER</button>
+<button class="mb p" onclick="closeM('hybCardM')">FATTO</button>
+</div></div>
+<div id="hybPropsM" class="mdl"><div class="mc">
+<div class="mh"><h2>🏠 PROPRIETÀ</h2></div>
+<div id="hybPropsL"></div>
+<button class="mb s" onclick="closeM('hybPropsM')">CHIUDI</button>
+</div></div>
+<div id="hybPropM" class="mdl"><div class="mc">
+<div id="hybPropC"></div>
+<button class="mb s" onclick="closeM('hybPropM')">CHIUDI</button>
+</div></div>
+<div id="hybCassaM" class="mdl"><div class="mc">
+<div class="mh"><h2 id="hybCassaTitle">💰</h2></div>
+<div id="hybCassaMoney" class="hyb-money"></div>
+<div class="hyb-quick">
+<button onclick="hybVia()">🎉 VIA +200€</button>
+<button onclick="hybTassa()">🧾 TASSA −100€</button>
+</div>
+<div class="hyb-amt-row">
+<input type="number" id="hybAmt" inputmode="numeric" min="1" placeholder="Importo €" aria-label="Importo in euro">
+<button onclick="hybPiu()" aria-label="Aggiungi importo">＋</button>
+<button onclick="hybMeno()" aria-label="Togli importo">－</button>
+</div>
+<div class="hyb-sub2">Oppure paga l'importo a:</div>
+<div id="hybCassaDest" class="hyb-sel"></div>
+<button class="mb s" onclick="closeM('hybCassaM')">CHIUDI</button>
+</div></div>
 <div id="challengeM" class="mdl"><div class="mc"><div class="mh"><h2>🎯 SFIDA DA ESEGUIRE</h2></div><div id="challengeCard"></div><div id="challengeTarget"></div><button class="mb p" id="challengeBtn" onclick="execChallenge()">ESEGUI</button></div></div>
 <div id="helpM" class="mdl"><div class="mc" style="max-height:90vh;overflow-y:auto"><div class="mh"><h2>📖 REGOLE DEL GIOCO</h2></div><div class="rules-list">
 <h4>🎯 OBIETTIVO</h4><p>Mandare in bancarotta o far spogliare completamente gli avversari.</p>
@@ -4343,6 +4445,207 @@ elem.webkitRequestFullscreen();
 }
 document.removeEventListener('click',tryFullscreen);
 }
+
+// ==================== MODALITA' TABELLONE (ibrida) ====================
+// L'app fa da banco per chi gioca sul tabellone fisico: tira i dadi, pesca
+// le carte, tiene il registro delle proprieta' e la cassa dei giocatori.
+// REGOLE IDENTICHE alla partita digitale, riusando i suoi stessi dati:
+// prezzi e affitti da PC, tabellone da BD, mazzi chC/csC, ipoteca a meta'
+// prezzo, case solo a set completo e costruite in pari. Qui non si inventa
+// nessuna meccanica nuova.
+var HYB_KEY='adultopia_tabellone';
+var H=null;            // stato della serata col tabellone
+var _hybMem=null;      // copia in memoria: se localStorage rifiuta le scritture la serata non si azzera
+var hybNp=2;
+var _hybScelta=null;   // selettore giocatore aperto nel foglio proprieta'
+var _hybPos=0;         // proprieta' aperta
+var _hybCassa=0;       // giocatore aperto in cassa
+var _hybCarta=null;    // ultima carta pescata (per il timer)
+var _hybLancio=false;  // doppio tocco sui dadi = un lancio solo
+
+function hybSalva(){_hybMem=H;try{localStorage.setItem(HYB_KEY,JSON.stringify(H))}catch(e){}}
+function hybUsabile(h){
+if(!h||!Array.isArray(h.ps)||h.ps.length<2||h.ps.length>4)return false;
+for(var i=0;i<h.ps.length;i++){var p=h.ps[i];if(!p||typeof p.name!=='string'||typeof p.money!=='number')return false}
+if(!h.props||typeof h.props!=='object'||Array.isArray(h.props))return false;
+for(var k in h.props){var pr=h.props[k];if(!pr||typeof pr.owner!=='number'||pr.owner<0||pr.owner>=h.ps.length)return false;if(!BD[k]||!BD[k].cn)return false}
+if(!Array.isArray(h.dCh)||!Array.isArray(h.dCs))return false;
+return true;
+}
+function hybCarica(){
+if(_hybMem)return _hybMem;
+try{var s=localStorage.getItem(HYB_KEY);if(!s)return null;var h=JSON.parse(s);return hybUsabile(h)?h:null}catch(e){return null}
+}
+
+function goHybrid(){
+E('intro').classList.remove('on');E('setup').classList.remove('on');
+E('hybrid').classList.add('on');
+try{localStorage.setItem(GIA_VISTO_KEY,'1')}catch(e){}
+startBgMusic();
+var salvata=hybCarica();
+if(salvata){H=salvata;hybMostraTavolo()}else hybMostraSetup();
+}
+function hybEsci(){E('hybrid').classList.remove('on');E('setup').classList.add('on');try{checkSave()}catch(e){}}
+function hybMostraSetup(){E('hybSetup').style.display='block';E('hybMain').style.display='none';E('hybNames').classList.remove('on')}
+function hybMostraTavolo(){E('hybSetup').style.display='none';E('hybMain').style.display='block';hybRender()}
+
+function hybSelN(n,el){
+hybNp=n;
+document.querySelectorAll('#hybSetup .po').forEach(function(x){x.classList.remove('sel')});
+if(el)el.classList.add('sel');
+var h='';
+for(var i=0;i<n;i++)h+='<div class="ni"><label>G'+(i+1)+'</label><input type="text" id="hpn'+i+'" placeholder="Nome..." maxlength="20"></div>';
+h+='<button class="btn p" onclick="hybInizia()">✦ AL TAVOLO ✦</button>';
+E('hybNames').innerHTML=h;E('hybNames').classList.add('on');
+}
+function hybMazzo(n){var a=[];for(var i=0;i<n;i++)a.push(i);return shuf(a)}
+function hybInizia(){
+var ps=[];
+for(var i=0;i<hybNp;i++){var el=E('hpn'+i);var name=nomePulito(el?el.value:'')||'G'+(i+1);ps.push({name:name,money:1500})}
+H={ps:ps,props:{},dCh:hybMazzo(chC.length),dCs:hybMazzo(csC.length)};
+hybSalva();hybMostraTavolo();
+}
+function hybNuova(){
+if(!window.confirm('Ricominciare da zero? Proprietà e casse verranno azzerate.'))return;
+H=null;_hybMem=null;try{localStorage.removeItem(HYB_KEY)}catch(e){}
+hybMostraSetup();
+}
+function hybNome(i){var p=H&&H.ps[i];return p?p.name:'?'}
+
+function hybRender(){
+if(!H)return;
+var h='';
+for(var i=0;i<H.ps.length;i++){var p=H.ps[i];
+h+='<div class="hyb-pl" onclick="hybApriCassa('+i+')"><div class="n">'+p.name+'</div><div class="m'+(p.money<0?' neg':'')+'">'+p.money+'€</div></div>'}
+E('hybPlayers').innerHTML=h;
+}
+
+// --- Dadi: stesso contatore di lanci gratuiti della partita digitale ---
+function hybRoll(){
+if(_hybLancio)return;
+if(!incrementTrialRoll())return;
+try{streakTouch()}catch(e){}
+_hybLancio=true;E('hrbtn').disabled=true;
+playDice();
+var d1=E('hd1'),d2=E('hd2'),v1=1+Math.floor(Math.random()*6),v2=1+Math.floor(Math.random()*6);
+d1.classList.add('roll');d2.classList.add('roll');
+setTimeout(function(){
+d1.classList.remove('roll');d2.classList.remove('roll');
+d1.textContent=v1;d2.textContent=v2;
+E('hybTot').textContent='Totale: '+(v1+v2);
+if(v1===v2){try{if(navigator.vibrate)navigator.vibrate([40,60,40])}catch(e){}
+speak('Doppio! La fortuna premia gli audaci. Ritirate!')}
+_hybLancio=false;E('hrbtn').disabled=false;
+},750);
+}
+
+// --- Carte: stessi mazzi del gioco, pescate senza rimpiazzo, rimescolate a fine mazzo ---
+function hybPesca(tipo){
+if(!H)return;
+var mazzo=tipo==='ch'?chC:csC, chiave=tipo==='ch'?'dCh':'dCs';
+if(!Array.isArray(H[chiave])||!H[chiave].length)H[chiave]=hybMazzo(mazzo.length);
+var idx=H[chiave].pop();
+hybSalva();
+var c=mazzo[idx]||mazzo[0];
+_hybCarta=c;
+E('hybCardTitle').textContent=tipo==='ch'?'⚡ IMPREVISTI':'🎴 PROBABILITÀ';
+E('hybCardTxt').textContent=c.txt;
+var bt=E('hybCardTimer');
+if(c.tm){bt.style.display='block';bt.textContent='⏱️ AVVIA TIMER '+Math.round(c.tm/60)+' MIN'}
+else bt.style.display='none';
+E('hybCardM').classList.add('on');
+try{speak(c.txt)}catch(e){}
+}
+// Callback SEMPRE presente: skipTimer senza callback chiamerebbe showEnd(),
+// che passa il turno della partita digitale e qui non esiste.
+function hybCartaTimer(){if(!_hybCarta||!_hybCarta.tm)return;closeM('hybCardM');startTimerPop(_hybCarta.tm,_hybCarta.txt,function(){})}
+
+// --- Proprieta': registro e foglio azioni. Stesse formule di calcRent/canBH ---
+function hybSetPos(col){var out=[];for(var cn in PC){if(PC[cn].c===col)out.push(C2P[cn])}return out}
+function hybSetCompleto(pid,col){var sp=hybSetPos(col);for(var i=0;i<sp.length;i++){var pr=H.props[sp[i]];if(!pr||pr.owner!==pid||pr.mort)return false}return true}
+function hybAffitto(pos){var pr=H.props[pos];if(!pr)return 0;var c=PC[BD[pos].cn];if(pr.mort)return 0;if(pr.hotel)return c.rh;if(pr.houses==2)return c.r2;if(pr.houses==1)return c.r1;if(hybSetCompleto(pr.owner,c.c))return c.rs;return c.r}
+function hybPuoCasa(pos){var pr=H.props[pos];if(!pr||pr.hotel||pr.mort||pr.houses>=2)return false;var c=PC[BD[pos].cn];if(!hybSetCompleto(pr.owner,c.c)||H.ps[pr.owner].money<c.hc)return false;var sp=hybSetPos(c.c);for(var i=0;i<sp.length;i++){var o=H.props[sp[i]];if(sp[i]!=pos&&o&&!o.hotel&&o.houses<pr.houses)return false}return true}
+function hybPuoHotel(pos){var pr=H.props[pos];if(!pr||pr.hotel||pr.mort||pr.houses<2)return false;var c=PC[BD[pos].cn];if(!hybSetCompleto(pr.owner,c.c)||H.ps[pr.owner].money<c.hc)return false;var sp=hybSetPos(c.c);for(var i=0;i<sp.length;i++){var o=H.props[sp[i]];if(sp[i]!=pos&&o&&!o.hotel&&o.houses<2)return false}return true}
+
+function hybApriProps(){
+if(!H)return;
+var h='';
+for(var cn=1;cn<=22;cn++){
+var pos=C2P[cn],c=PC[cn],b=BD[pos];if(!c||!b)continue;
+var pr=H.props[pos];
+var dx=pr?(hybNome(pr.owner)+(pr.mort?' 🔒':(pr.hotel?' 🏨':(pr.houses?' 🏠x'+pr.houses:'')))):(c.p+'€');
+h+='<div class="hyb-prop" onclick="hybApriProp('+pos+')"><span class="hyb-dot" style="background:'+c.c+'"></span><span class="hyb-ptxt">'+b.txt+'</span><span class="hyb-owner">'+dx+'</span></div>';
+}
+E('hybPropsL').innerHTML=h;
+E('hybPropsM').classList.add('on');
+}
+function hybApriProp(pos){_hybPos=pos;_hybScelta=null;hybDisegnaProp();E('hybPropM').classList.add('on')}
+function hybScegli(id){_hybScelta=_hybScelta===id?null:id;hybDisegnaProp()}
+function hybSelettore(id,classe,label,esclusoPid,fn){
+var h='<button class="mb '+classe+'" onclick="hybScegli(\''+id+'\')">'+label+'</button>';
+if(_hybScelta===id){
+h+='<div class="hyb-sel">';
+for(var i=0;i<H.ps.length;i++){if(i===esclusoPid)continue;h+='<button onclick="'+fn+'('+_hybPos+','+i+')">'+hybNome(i)+'</button>'}
+// Il banco esiste solo nello scambio, come nel gioco digitale (execTrade
+// accetta "Banca" e libera la proprieta').
+if(id==='scambia')h+='<button onclick="hybAlBanco('+_hybPos+')">🏦 Banco</button>';
+h+='</div>';
+}
+return h;
+}
+function hybAlBanco(pos){if(!H.props[pos])return;delete H.props[pos];toast('🏦','Tornata al banco');_hybScelta=null;hybSalva();hybRender();hybDisegnaProp();if(E('hybPropsM').classList.contains('on'))hybApriProps()}
+function hybDisegnaProp(){
+var pos=_hybPos,b=BD[pos],c=PC[b.cn],pr=H.props[pos];
+var mortVal=Math.floor(c.p/2);
+var scuro=(c.c=='#FFD700'||c.c=='#87CEEB'||c.c=='#FFA500');
+var h='<div class="pcard"><div class="pcard-h" style="background:'+c.c+';color:'+(scuro?'#000':'#fff')+'">'+b.txt+' - '+c.p+'€</div><div class="pcard-b">';
+h+='<div><span>Proprietario</span><span>'+(pr?hybNome(pr.owner):'Banco')+'</span></div>';
+h+='<div><span>Stato</span><span>'+(pr?(pr.mort?'🔒 IPOTECATA':(pr.hotel?'🏨 Hotel':(pr.houses?'🏠 x'+pr.houses:'Terreno'))):'Libera')+'</span></div>';
+h+='<div><span>Affitto base / set</span><span>'+c.r+'€ / '+c.rs+'€</span></div>';
+h+='<div><span>1 casa / 2 case / hotel</span><span>'+c.r1+' / '+c.r2+' / '+c.rh+'€</span></div>';
+if(pr&&!pr.mort)h+='<div style="border-top:2px solid rgba(212,175,55,0.3);margin-top:6px;padding-top:6px"><span>💰 <strong>Affitto attuale</strong></span><span style="color:#22c55e;font-weight:700">'+hybAffitto(pos)+'€</span></div>';
+h+='</div></div>';
+if(!pr){
+h+=hybSelettore('compra','p','🏠 COMPRA '+c.p+'€ · chi?',-1,'hybCompra');
+}else{
+h+=hybSelettore('affitto','gr','💸 PAGA AFFITTO '+hybAffitto(pos)+'€ · chi paga?',pr.owner,'hybPagaAffitto');
+if(!pr.mort&&hybSetCompleto(pr.owner,c.c)&&!pr.hotel){
+h+='<button class="mb p" '+(hybPuoCasa(pos)?'':'disabled')+' onclick="hybCasa('+pos+')">🏠 CASA '+c.hc+'€</button>';
+h+='<button class="mb o" '+(hybPuoHotel(pos)?'':'disabled')+' onclick="hybHotel('+pos+')">🏨 HOTEL '+c.hc+'€</button>';
+}
+if(!pr.mort)h+='<button class="mb s" '+(pr.houses||pr.hotel?'disabled':'')+' onclick="hybIpoteca('+pos+')">🔒 IPOTECA +'+mortVal+'€</button>';
+else h+='<button class="mb gr" '+(H.ps[pr.owner].money>=mortVal?'':'disabled')+' onclick="hybRiscatta('+pos+')">🔓 RISCATTA −'+mortVal+'€</button>';
+h+=hybSelettore('scambia','s','🔁 PASSA A · a chi?',pr.owner,'hybScambia');
+}
+E('hybPropC').innerHTML=h;
+}
+function hybDopo(){_hybScelta=null;hybSalva();hybRender();hybDisegnaProp();if(E('hybPropsM').classList.contains('on'))hybApriProps()}
+function hybCompra(pos,pid){var c=PC[BD[pos].cn],p=H.ps[pid];if(H.props[pos])return;if(p.money<c.p)return toast('❌','Soldi insufficienti');p.money-=c.p;H.props[pos]={owner:pid,houses:0,hotel:false,mort:false};toast('🏠',hybNome(pid)+' compra!');hybDopo()}
+function hybPagaAffitto(pos,pid){var pr=H.props[pos];if(!pr||pid===pr.owner)return;var r=hybAffitto(pos);H.ps[pid].money-=r;H.ps[pr.owner].money+=r;toast('💸',hybNome(pid)+' paga '+r+'€ a '+hybNome(pr.owner));hybDopo()}
+function hybScambia(pos,pid){var pr=H.props[pos];if(!pr||pid===pr.owner)return;pr.owner=pid;toast('🔁','Ora è di '+hybNome(pid));hybDopo()}
+function hybIpoteca(pos){var pr=H.props[pos];if(!pr)return;if(pr.houses||pr.hotel)return toast('❌','Vendi prima le case');var v=Math.floor(PC[BD[pos].cn].p/2);H.ps[pr.owner].money+=v;pr.mort=true;toast('🔒','Ipotecata +'+v+'€');hybDopo()}
+function hybRiscatta(pos){var pr=H.props[pos];if(!pr)return;var v=Math.floor(PC[BD[pos].cn].p/2),p=H.ps[pr.owner];if(p.money<v)return toast('❌','Soldi insufficienti');p.money-=v;pr.mort=false;toast('🔓','Riscattata −'+v+'€');hybDopo()}
+function hybCasa(pos){if(!hybPuoCasa(pos))return;var pr=H.props[pos],c=PC[BD[pos].cn];H.ps[pr.owner].money-=c.hc;pr.houses++;toast('🏠','Casa costruita −'+c.hc+'€');hybDopo()}
+function hybHotel(pos){if(!hybPuoHotel(pos))return;var pr=H.props[pos],c=PC[BD[pos].cn];H.ps[pr.owner].money-=c.hc;pr.hotel=true;toast('🏨','Hotel costruito −'+c.hc+'€');hybDopo()}
+
+// --- Cassa: Via, tasse, aggiusti e pagamenti fra giocatori ---
+function hybApriCassa(i){_hybCassa=i;var a=E('hybAmt');if(a)a.value='';hybDisegnaCassa();E('hybCassaM').classList.add('on')}
+function hybDisegnaCassa(){
+var p=H.ps[_hybCassa];
+E('hybCassaTitle').textContent='💰 '+p.name;
+E('hybCassaMoney').textContent=p.money+'€';
+E('hybCassaMoney').style.color=p.money<0?'#ef4444':'';
+var h='';
+for(var i=0;i<H.ps.length;i++){if(i===_hybCassa)continue;h+='<button onclick="hybPagaA('+i+')">→ '+hybNome(i)+'</button>'}
+E('hybCassaDest').innerHTML=h;
+}
+function hybImporto(){var v=parseInt(E('hybAmt').value,10);return isFinite(v)&&v>0?v:0}
+function hybCassaDopo(){hybSalva();hybRender();hybDisegnaCassa()}
+function hybVia(){H.ps[_hybCassa].money+=200;toast('🎉','+200€ dal Via');hybCassaDopo()}
+function hybTassa(){H.ps[_hybCassa].money-=100;toast('🧾','−100€ di tassa');hybCassaDopo()}
+function hybPiu(){var v=hybImporto();if(!v)return toast('❌','Scrivi prima l\'importo');H.ps[_hybCassa].money+=v;hybCassaDopo()}
+function hybMeno(){var v=hybImporto();if(!v)return toast('❌','Scrivi prima l\'importo');H.ps[_hybCassa].money-=v;hybCassaDopo()}
+function hybPagaA(dest){var v=hybImporto();if(!v)return toast('❌','Scrivi prima l\'importo');H.ps[_hybCassa].money-=v;H.ps[dest].money+=v;toast('💸',hybNome(_hybCassa)+' paga '+v+'€ a '+hybNome(dest));hybCassaDopo()}
 
 // Service worker vero (sw.js). La vecchia registrazione usava una data: URL,
 // vietata dalla spec: falliva sempre in silenzio, quindi niente offline.

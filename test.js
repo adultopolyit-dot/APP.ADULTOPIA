@@ -193,6 +193,44 @@ verifica('anche i salvataggi vecchi vengono ripuliti', /p\.name=nomePulito\(p\.n
 verifica('il salvataggio viene validato prima di essere usato', /function salvataggioUsabile/.test(html),
   'un salvataggio incompleto apriva la schermata di gioco e poi crollava');
 
+sezione('Modalità tabellone');
+verifica('si entra dall\'intro e dal setup', /intro-ghost" onclick="goHybrid\(\)"/.test(html) && (html.match(/onclick="goHybrid\(\)"/g) || []).length >= 2,
+  'chi ha la scatola non trovava il banco digitale: l\'accesso deve stare su entrambe le schermate iniziali');
+verifica('i dadi del tabellone contano nei lanci gratuiti', /function hybRoll\(\)\{[\s\S]{0,200}incrementTrialRoll\(\)/.test(html),
+  'senza il contatore condiviso la modalità ibrida regalava lanci illimitati aggirando la prova');
+verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
+  'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
+verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),
+  'skipTimer senza callback chiama showEnd(), che passa il turno di una partita digitale che qui non esiste');
+{
+  const datiH = new Function(
+    'var BD=' + letterale('BD', '{', '}') + ';' +
+    'var PC=' + letterale('PC', '{', '}') + ';' +
+    'var P2C=' + letterale('P2C', '{', '}') + ';' +
+    'var C2P={};for(var k in P2C)C2P[P2C[k]]=parseInt(k);' +
+    'var H={ps:[{name:"A",money:500},{name:"B",money:500}],props:{}};' +
+    [fn('hybSetPos'), fn('hybSetCompleto'), fn('hybAffitto')].join('\n') +
+    ';return {H:H,C2P:C2P,PC:PC,aff:hybAffitto}')();
+  const pos1 = datiH.C2P[1], pos2 = datiH.C2P[2];
+  datiH.H.props[pos1] = { owner: 0, houses: 0, hotel: false, mort: false };
+  const base = datiH.aff(pos1);
+  datiH.H.props[pos2] = { owner: 0, houses: 0, hotel: false, mort: false };
+  const conSet = datiH.aff(pos1);
+  datiH.H.props[pos1].houses = 2;
+  const dueCase = datiH.aff(pos1);
+  datiH.H.props[pos1].hotel = true;
+  const hotel = datiH.aff(pos1);
+  datiH.H.props[pos1].mort = true;
+  const ipotecata = datiH.aff(pos1);
+  verifica('gli affitti del tabellone sono quelli del gioco',
+    base === datiH.PC[1].r && conSet === datiH.PC[1].rs && dueCase === datiH.PC[1].r2 && hotel === datiH.PC[1].rh && ipotecata === 0,
+    'la modalità ibrida deve usare le stesse regole della partita digitale, non una copia divergente: ' +
+    [base, conSet, dueCase, hotel, ipotecata].join('/') + ' invece di ' +
+    [datiH.PC[1].r, datiH.PC[1].rs, datiH.PC[1].r2, datiH.PC[1].rh, 0].join('/'));
+  verifica('l\'ipoteca vale metà prezzo anche al tabellone', /hybIpoteca\(pos\)\{[\s\S]{0,220}Math\.floor\(PC\[BD\[pos\]\.cn\]\.p\/2\)/.test(html),
+    'un valore di ipoteca diverso dal gioco digitale cambierebbe le regole');
+}
+
 sezione('Timer');
 verifica('il tempo si legge dall\'orologio, non dai battiti', /var scadenza=Date\.now\(\)\+sec\*1000/.test(html),
   'scalando un contatore a ogni battito, col telefono bloccato un massaggio da 3 minuti non finiva entro 10 (i browser rallentano i contatori in secondo piano)');
@@ -220,7 +258,10 @@ verifica('niente immagini base64 nell\'HTML', !/data:image\/(png|jpe?g);base64/.
   'il logo inline pesava 91 KB, il 28% del file');
 verifica('la musica non si scarica all\'avvio', /id="bgMusic" loop preload="none"/.test(html),
   '7,6 MB scaricati a ogni apertura anche da chi non accende mai la musica');
-verifica('HTML sotto i 260 KB', html.length < 260 * 1024, 'ora e\' ' + Math.round(html.length / 1024) + ' KB');
+// Budget alzato da 260 a 285 KB il 18/08/2026 per la modalita' tabellone
+// (+10 KB di codice, nessun asset inline). Il controllo resta: blocca la
+// crescita accidentale, non le feature decise.
+verifica('HTML sotto i 285 KB', html.length < 285 * 1024, 'ora e\' ' + Math.round(html.length / 1024) + ' KB');
 
 sezione('Sicurezza');
 const proxy = fs.readFileSync(path.join(BASE, 'functions/openai.js'), 'utf8');
