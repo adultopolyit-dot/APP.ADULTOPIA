@@ -199,6 +199,11 @@ verifica('i font sono precaricati e senza swap', /rel="preload"[^>]*montserrat-v
   'senza preload il font arriva dopo il testo e la pagina scatta');
 verifica('il service worker mette in cache i font', /assets\/fonts\/fjalla-one\.woff2/.test(sw) && /assets\/fonts\/montserrat-var\.woff2/.test(sw),
   'offline i font sparivano e l\'app cambiava faccia');
+// Fonte di verita' dei prezzi: site/src/lib/products.ts (listino 19/08/2026).
+verifica('il paywall mostra il listino vero', /€4,99<span>\/mese/.test(html) && /€19,99<span>\/anno/.test(html) && /€69,99<span> una volta/.test(html),
+  'l\'app prometteva prezzi diversi da quelli che il sito incassa');
+verifica('niente barrati finti nel paywall', !/€199\.99|€699\.99|€1\.99|€19\.99|€69\.99|13,99|48,99/.test(html),
+  'un prezzo barrato mai praticato e\' vietato (Omnibus) oltre che incoerente');
 
 sezione('Modalità tabellone');
 verifica('si entra dall\'intro e dal setup', /intro-ghost" onclick="goHybrid\(\)"/.test(html) && (html.match(/onclick="goHybrid\(\)"/g) || []).length >= 2,
