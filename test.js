@@ -212,6 +212,12 @@ verifica('si entra dall\'intro e dal setup', /intro-ghost" onclick="goHybrid\(\)
   'chi ha la scatola non trovava il banco digitale: l\'accesso deve stare su entrambe le schermate iniziali');
 verifica('i dadi del tabellone contano nei lanci gratuiti', /function hybRoll\(\)\{[\s\S]{0,200}incrementTrialRoll\(\)/.test(html),
   'senza il contatore condiviso la modalità ibrida regalava lanci illimitati aggirando la prova');
+verifica('il tabellone conta i vestiti come il digitale', /ps\.push\(\{name:name,money:1500,isFemale:isFemale\(name\),clothesArr:\[1,1,1,1,0\]\}\)/.test(html) && /hybVestiti\(/.test(html),
+  'la conta dei vestiti deve partire da 4 capi su 5, la stessa regola della partita digitale');
+verifica('le serate salvate senza vestiti vengono vestite al caricamento', /if\(!Array\.isArray\(p\.clothesArr\)\|\|p\.clothesArr\.length!==5\)p\.clothesArr=\[1,1,1,1,0\]/.test(html),
+  'un salvataggio della versione precedente faceva crollare il render dei vestiti');
+verifica('toccare i vestiti non apre la cassa', /hyb-cl" onclick="event\.stopPropagation\(\);hybVestiti\(/.test(html),
+  'la riga vestiti sta dentro la card giocatore, che al tocco apre la cassa');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
   'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
 verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),
