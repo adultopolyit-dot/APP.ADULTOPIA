@@ -10,6 +10,7 @@ const path = require('path');
 
 const BASE = __dirname;
 const html = fs.readFileSync(path.join(BASE, 'index.html'), 'utf8');
+const sw = fs.readFileSync(path.join(BASE, 'sw.js'), 'utf8');
 
 let passati = 0, falliti = 0;
 function verifica(nome, condizione, perche) {
@@ -192,6 +193,12 @@ verifica('anche i salvataggi vecchi vengono ripuliti', /p\.name=nomePulito\(p\.n
   'i nomi con markup restavano salvati e tornavano a ogni partita ripresa');
 verifica('il salvataggio viene validato prima di essere usato', /function salvataggioUsabile/.test(html),
   'un salvataggio incompleto apriva la schermata di gioco e poi crollava');
+verifica('font self-hostati, niente Google Fonts', !/fonts\.googleapis\.com/.test(html) && /assets\/fonts\/montserrat-var\.woff2/.test(html) && /assets\/fonts\/fjalla-one\.woff2/.test(html),
+  'la richiesta a Google faceva lampeggiare il testo a ogni avvio (FOUT), regola fissa: preload + font-display block');
+verifica('i font sono precaricati e senza swap', /rel="preload"[^>]*montserrat-var/.test(html) && !/font-display:swap/.test(html),
+  'senza preload il font arriva dopo il testo e la pagina scatta');
+verifica('il service worker mette in cache i font', /assets\/fonts\/fjalla-one\.woff2/.test(sw) && /assets\/fonts\/montserrat-var\.woff2/.test(sw),
+  'offline i font sparivano e l\'app cambiava faccia');
 
 sezione('Modalità tabellone');
 verifica('si entra dall\'intro e dal setup', /intro-ghost" onclick="goHybrid\(\)"/.test(html) && (html.match(/onclick="goHybrid\(\)"/g) || []).length >= 2,

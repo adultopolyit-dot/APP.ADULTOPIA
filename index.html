@@ -37,10 +37,13 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" href="assets/fonts/montserrat-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/fjalla-one.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Font self-hostati: niente richiesta a Google, niente FOUT (display block).
+   Montserrat e' un font variabile: un solo woff2 copre tutti i pesi. */
+@font-face{font-family:'Montserrat';src:url('assets/fonts/montserrat-var.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:block}
+@font-face{font-family:'Fjalla One';src:url('assets/fonts/fjalla-one.woff2') format('woff2');font-weight:400;font-style:normal;font-display:block}
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
 --velvet:#0a0a0a;
@@ -55,6 +58,17 @@
 --sh:0 4px 20px rgba(0,0,0,0.6)
 }
 html,body{height:100%;min-height:100%;min-height:-webkit-fill-available;overflow:hidden;touch-action:manipulation}
+/* Superfici del browser a tema: selezione, caret, scrollbar, focus, tap.
+   Sono i dettagli che i default grigi tradiscono per primi. */
+*{-webkit-tap-highlight-color:transparent}
+::selection{background:rgba(185,28,28,.45);color:var(--cream2)}
+input,textarea{caret-color:var(--ruby3);accent-color:var(--ruby)}
+*::-webkit-scrollbar{width:4px;height:4px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:rgba(185,28,28,.35);border-radius:2px}
+*{scrollbar-width:thin;scrollbar-color:rgba(185,28,28,.35) transparent}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 body{
 font-family:'Montserrat',sans-serif;
 background:var(--velvet);
@@ -64,7 +78,7 @@ color:var(--cream)
 /* Install Banner PWA */
 /* Barra piu' bassa possibile: e' fixed in fondo e ruba spazio alla prima
    schermata, dove il bottone Inizia deve restare visibile. */
-.install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--velvet2),var(--velvet));border-top:2px solid var(--ruby);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:9999;display:none;animation:slideUp 0.3s ease}
+.install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#161011,var(--velvet));border-top:1px solid rgba(185,28,28,.55);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:9999;display:none;animation:slideUp 0.3s ease}
 .install-banner.show{display:block}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .install-content{max-width:430px;margin:0 auto;display:flex;align-items:center;gap:12px}
@@ -86,8 +100,8 @@ color:var(--cream)
 .ios-instructions .step-num{display:inline-block;width:30px;height:30px;background:var(--ruby);border-radius:50%;line-height:30px;margin-right:10px;font-weight:bold}
 .ios-instructions .share-icon{font-size:1.5rem;vertical-align:middle}
 .ios-close{margin-top:20px;padding:12px 30px;background:linear-gradient(145deg,var(--ruby),#7f1d1d);border:none;border-radius:10px;color:white;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif}
-.app{max-width:430px;margin:0 auto;height:100vh;height:100dvh;height:-webkit-fill-available;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--velvet)}
-.hdr{display:flex;align-items:center;justify-content:center;padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px));flex-shrink:0;background:linear-gradient(180deg,var(--velvet2) 0%,var(--velvet) 100%);border-bottom:2px solid var(--ruby);box-shadow:0 4px 20px rgba(185,28,28,0.3);position:relative}
+.app{max-width:430px;margin:0 auto;height:100vh;height:100dvh;height:-webkit-fill-available;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(140% 90% at 50% -15%,#1c0b0d 0%,#100809 45%,var(--velvet) 100%)}
+.hdr{display:flex;align-items:center;justify-content:center;padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px));flex-shrink:0;background:linear-gradient(180deg,#141011 0%,rgba(10,10,10,0) 100%);border-bottom:1px solid rgba(185,28,28,.5);box-shadow:0 6px 24px -6px rgba(185,28,28,0.28);position:relative}
 .hdr img{height:50px;width:auto;filter:drop-shadow(0 4px 15px rgba(185,28,28,0.5))}
 .hdr-btns{position:absolute;right:10px;display:flex;gap:4px}
 .hdr-btns button{padding:6px 8px;border:none;border-radius:6px;background:linear-gradient(145deg,var(--velvet3),var(--velvet));color:var(--cream);font-size:0.9rem;cursor:pointer;box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,0.05);border:1px solid rgba(185,28,28,0.3);font-family:'Montserrat',sans-serif}
@@ -130,24 +144,24 @@ color:var(--cream)
 .badge18{position:absolute;left:10px;background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;padding:5px 12px;border-radius:4px;font-size:0.65rem;font-weight:800;letter-spacing:1px;box-shadow:0 3px 10px rgba(212,175,55,0.4)}
 .scr{display:none;flex:1;overflow-y:auto;padding:12px;min-height:0}
 .scr.on{display:flex;flex-direction:column;flex:1}
-.ttl{text-align:center;font-size:1.4rem;color:var(--cream);margin:8px 0;font-weight:700;letter-spacing:2px;text-shadow:0 2px 10px rgba(185,28,28,0.5)}
+.ttl{text-align:center;font-family:'Fjalla One','Montserrat',sans-serif;font-size:1.5rem;color:var(--cream);margin:8px 0;font-weight:400;letter-spacing:2.5px;text-shadow:0 2px 18px rgba(185,28,28,0.55)}
 .psel{display:flex;gap:12px;justify-content:center;margin-bottom:10px}
-.po{padding:20px 30px;background:linear-gradient(145deg,var(--velvet2),var(--velvet));border:2px solid rgba(185,28,28,0.3);border-radius:12px;cursor:pointer;text-align:center;box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,0.03);transition:all 0.3s}
+.po{padding:20px 30px;background:linear-gradient(165deg,#171112,var(--velvet));border:1px solid rgba(185,28,28,0.35);border-radius:14px;cursor:pointer;text-align:center;box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,0.05);transition:all 0.3s}
 .po:active{transform:scale(0.97)}
-.po.sel{border-color:var(--ruby);box-shadow:0 0 30px rgba(185,28,28,0.4),var(--sh);background:linear-gradient(145deg,#1a0a0a,#0a0505)}
-.po span{display:block;font-size:2.5rem;font-weight:900;color:var(--cream);text-shadow:0 2px 4px rgba(0,0,0,0.5)}
+.po.sel{border-color:rgba(220,38,38,.8);box-shadow:0 12px 36px -8px rgba(185,28,28,0.5),var(--sh);background:linear-gradient(165deg,#200a0c,#0a0505)}
+.po span{display:block;font-family:'Fjalla One','Montserrat',sans-serif;font-size:2.7rem;font-weight:400;color:var(--cream);text-shadow:0 3px 12px rgba(0,0,0,0.6)}
 .po small{color:rgba(245,245,220,0.6);font-size:0.75rem;margin-top:5px;display:block;font-weight:600}
 .pn{display:none;margin-top:8px}.pn.on{display:block}
 .ni{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .ni label{min-width:35px;font-weight:700;color:var(--cream);font-size:0.9rem}
-.ni input{flex:1;padding:14px;border:2px solid rgba(185,28,28,0.3);border-radius:10px;background:var(--velvet);color:var(--cream);font-size:1rem;font-family:'Montserrat',sans-serif;box-shadow:inset 0 3px 10px rgba(0,0,0,0.5)}
+.ni input{flex:1;padding:14px;border:1px solid rgba(185,28,28,0.4);border-radius:10px;background:rgba(0,0,0,.45);color:var(--cream);font-size:1rem;font-family:'Montserrat',sans-serif;box-shadow:inset 0 2px 8px rgba(0,0,0,0.5)}
 .ni input:focus{outline:none;border-color:var(--ruby)}
 .ni input::placeholder{color:rgba(245,245,220,0.3)}
 .ni .gicon{font-size:1.5rem}
-.btn{display:block;width:100%;padding:18px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:12px;text-transform:uppercase;letter-spacing:1px;font-family:'Montserrat',sans-serif}
-.btn.p{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream);box-shadow:0 6px 25px rgba(185,28,28,0.5),inset 0 1px 0 rgba(255,255,255,0.1);border:1px solid var(--ruby3)}
+.btn{display:block;width:100%;padding:18px;border:none;border-radius:12px;font-size:1.05rem;font-weight:400;cursor:pointer;margin-top:12px;text-transform:uppercase;letter-spacing:1.5px;font-family:'Fjalla One','Montserrat',sans-serif}
+.btn.p{background:linear-gradient(180deg,#e23434 0%,var(--ruby) 55%,#8f1414 100%);color:var(--cream2);box-shadow:0 12px 30px -8px rgba(185,28,28,0.6),0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,0.25);border:1px solid var(--ruby3)}
 .btn.p:active{transform:translateY(3px);box-shadow:0 3px 15px rgba(185,28,28,0.4)}
-.btn.s{background:linear-gradient(145deg,var(--velvet2),var(--velvet));color:var(--cream);border:2px solid rgba(185,28,28,0.3);box-shadow:var(--sh)}
+.btn.s{background:linear-gradient(165deg,#171112,var(--velvet));color:var(--cream);border:1px solid rgba(185,28,28,0.4);box-shadow:var(--sh)}
 .gh{display:flex;align-items:center;gap:5px;padding:8px 8px;background:linear-gradient(145deg,var(--velvet2),var(--velvet));border-radius:12px;margin-bottom:8px;flex-shrink:0;box-shadow:var(--sh);border:1px solid rgba(185,28,28,0.2)}
 /* Il nome del turno non viene piu' tagliato a meta' dal codice: se proprio
    non ci sta, a troncarlo con i puntini ci pensa il CSS, che sa quanto spazio
@@ -172,8 +186,8 @@ color:var(--cream)
    e il contenuto scorre, cosi' non si perde la prima carta. */
 .pg{display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;min-height:0;padding:4px;justify-content:safe center}
 .pg.m{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pc{background:linear-gradient(145deg,var(--velvet2),var(--velvet));border-radius:12px;padding:12px;border:2px solid transparent;flex-shrink:0;box-shadow:var(--sh);transition:all 0.3s}
-.pc.act{border-color:var(--ruby);background:linear-gradient(145deg,#1a0808,#0d0404);box-shadow:0 0 25px rgba(185,28,28,0.3),var(--sh)}
+.pc{background:linear-gradient(165deg,#161011,var(--velvet));border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,.06);flex-shrink:0;box-shadow:var(--sh);transition:all 0.3s}
+.pc.act{border-color:rgba(220,38,38,.75);background:linear-gradient(165deg,#200a0c,#0d0405);box-shadow:0 10px 34px -8px rgba(185,28,28,0.45),var(--sh)}
 .pc.jl{border-color:var(--gold)}.pc.out{opacity:0.3;filter:grayscale(0.6)}
 .pnm{font-weight:700;color:var(--cream);margin-bottom:6px;font-size:0.9rem;display:flex;align-items:center;gap:6px;letter-spacing:1px}
 .pst{font-size:0.75rem;color:rgba(245,245,220,0.7);display:flex;gap:6px;flex-wrap:wrap}
@@ -190,7 +204,7 @@ color:var(--cream)
    dei giocatori e l'azione resta in basso, dove arriva il pollice. */
 .dc{background:linear-gradient(145deg,var(--velvet2),var(--velvet));border-radius:16px;padding:18px 15px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));text-align:center;flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--sh);border:1px solid rgba(185,28,28,0.2)}
 .dd{display:flex;justify-content:center;gap:25px;margin-bottom:12px;perspective:400px}
-.die{width:60px;height:60px;background:linear-gradient(145deg,#f5f5dc,#e8e8d0,#d4d4c0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:900;color:#1a1a1a;box-shadow:0 10px 30px rgba(0,0,0,0.6),0 0 0 4px rgba(185,28,28,0.3),inset 0 3px 6px rgba(255,255,255,0.8),inset 0 -5px 10px rgba(0,0,0,0.15);transform:perspective(300px) rotateX(15deg) rotateY(-10deg);transition:transform 0.3s;font-family:'Montserrat',sans-serif}
+.die{width:60px;height:60px;background:linear-gradient(145deg,#f5f5dc,#e8e8d0,#d4d4c0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.3rem;font-weight:400;color:#231212;box-shadow:0 12px 28px rgba(0,0,0,0.65),0 0 0 3px rgba(185,28,28,0.35),inset 0 3px 6px rgba(255,255,255,0.85),inset 0 -6px 12px rgba(0,0,0,0.18);transform:perspective(300px) rotateX(15deg) rotateY(-10deg);transition:transform 0.3s;font-family:'Fjalla One','Montserrat',sans-serif}
 .die.roll{animation:diceRoll 0.7s ease-out}
 @keyframes diceRoll{0%{transform:perspective(300px) rotateX(15deg) rotateY(-10deg)}20%{transform:perspective(300px) rotateX(180deg) rotateY(90deg) rotateZ(45deg)}40%{transform:perspective(300px) rotateX(-90deg) rotateY(180deg) rotateZ(-30deg)}60%{transform:perspective(300px) rotateX(270deg) rotateY(-45deg) rotateZ(60deg)}80%{transform:perspective(300px) rotateX(45deg) rotateY(270deg) rotateZ(-15deg)}100%{transform:perspective(300px) rotateX(15deg) rotateY(-10deg)}}
 @keyframes winPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
@@ -242,27 +256,27 @@ color:var(--cream)
    e' fissato in fondo e senza questo spazio coprirebbe il bottone. */
 .intro-cta{position:relative;z-index:3;text-align:center;padding:clamp(10px,1.8vh,20px) 20px;padding-bottom:calc(clamp(10px,1.8vh,20px) + var(--banner-h,0px));flex:0 0 auto}
 .intro-cta .rb{padding:14px 40px;font-size:0.95rem}
-.rb{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream);padding:16px 50px;border:none;border-radius:30px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 8px 30px rgba(185,28,28,0.5),inset 0 1px 0 rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:2px;font-family:'Montserrat',sans-serif;border:1px solid var(--ruby3)}
+.rb{background:linear-gradient(180deg,#e23434 0%,var(--ruby) 55%,#8f1414 100%);color:var(--cream2);padding:16px 50px;border:none;border-radius:30px;font-size:1.05rem;font-weight:400;cursor:pointer;box-shadow:0 14px 34px -8px rgba(185,28,28,0.6),0 3px 8px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:2px;font-family:'Fjalla One','Montserrat',sans-serif;border:1px solid var(--ruby3)}
 .rb:active{transform:translateY(4px);box-shadow:0 4px 15px rgba(185,28,28,0.4)}
 .rb:disabled{opacity:0.35}
 .mdl{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(10px);z-index:100;padding:15px;overflow-y:auto;align-items:center;justify-content:center}
 .mdl.on{display:flex}
-.mc{background:linear-gradient(145deg,var(--velvet2),var(--velvet));border-radius:16px;padding:20px;max-width:360px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.8);border:2px solid rgba(185,28,28,0.3)}
-.mh h2{font-size:1.05rem;color:var(--cream);text-align:center;margin-bottom:15px;font-weight:700;letter-spacing:1px}
-.mb{display:block;width:100%;padding:16px;border:none;border-radius:12px;font-size:0.95rem;font-weight:700;cursor:pointer;margin-top:10px;text-transform:uppercase;letter-spacing:1px;font-family:'Montserrat',sans-serif}
-.mb.p{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream);border:1px solid var(--ruby3)}
+.mc{background:linear-gradient(165deg,#171112 0%,var(--velvet) 70%);border-radius:18px;padding:20px;max-width:360px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,0.85),inset 0 1px 0 rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.22)}
+.mh h2{font-family:'Fjalla One','Montserrat',sans-serif;font-size:1.15rem;color:var(--cream);text-align:center;margin-bottom:15px;font-weight:400;letter-spacing:2px}
+.mb{display:block;width:100%;padding:16px;border:none;border-radius:12px;font-size:1rem;font-weight:400;cursor:pointer;margin-top:10px;text-transform:uppercase;letter-spacing:1.5px;font-family:'Fjalla One','Montserrat',sans-serif}
+.mb.p{background:linear-gradient(180deg,#e23434 0%,var(--ruby) 55%,#8f1414 100%);color:var(--cream2);border:1px solid var(--ruby3);box-shadow:0 10px 26px -8px rgba(185,28,28,.55),inset 0 1px 0 rgba(255,255,255,.22)}
 .mb.s{background:linear-gradient(145deg,var(--velvet3),var(--velvet));color:var(--cream);border:1px solid rgba(185,28,28,0.3)}
 .mb.gr{background:linear-gradient(145deg,#22c55e,#16a34a);color:#fff;border:1px solid #44dd77}
-.mb.o{background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;border:1px solid #e8c547}
+.mb.o{background:linear-gradient(180deg,#e8c34c,#b8912a);color:#1a1206;border:1px solid #e8c547;box-shadow:0 10px 26px -8px rgba(212,175,55,.5),inset 0 1px 0 rgba(255,255,255,.4)}
 .mb:active{transform:translateY(2px)}
 .mb:disabled{opacity:0.35;cursor:default}
-.card-face{border-radius:14px;padding:25px;text-align:center}
-.card-face.imp{background:linear-gradient(145deg,#f97316,#c2410c)}
-.card-face.prb{background:linear-gradient(145deg,#a855f7,#7c3aed)}
+.card-face{border-radius:16px;padding:25px;text-align:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -24px 44px rgba(0,0,0,.28),0 18px 44px -12px rgba(0,0,0,.6)}
+.card-face.imp{background:radial-gradient(130% 70% at 50% -10%,rgba(255,236,200,.30),transparent 55%),linear-gradient(165deg,#e0561c 0%,#8f2807 100%)}
+.card-face.prb{background:radial-gradient(130% 70% at 50% -10%,rgba(235,220,255,.28),transparent 55%),linear-gradient(165deg,#7c40e0 0%,#3b1580 100%)}
 .card-icon{font-size:3.5rem;margin-bottom:12px}
-.card-text{font-size:1.1rem;font-weight:600;color:#fff;line-height:1.5}
+.card-text{font-size:1.1rem;font-weight:600;color:#fff;line-height:1.5;text-shadow:0 1px 3px rgba(0,0,0,.35)}
 .target-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
-.target-btn{padding:16px;background:linear-gradient(145deg,var(--velvet3),var(--velvet));border:2px solid rgba(185,28,28,0.3);border-radius:12px;color:var(--cream);font-weight:700;cursor:pointer;font-size:0.9rem;font-family:'Montserrat',sans-serif}
+.target-btn{padding:16px;background:linear-gradient(165deg,#171112,var(--velvet));border:1px solid rgba(185,28,28,0.4);border-radius:12px;color:var(--cream);font-weight:700;cursor:pointer;font-size:0.9rem;font-family:'Montserrat',sans-serif}
 .target-btn.sel{border-color:var(--ruby);background:linear-gradient(145deg,#1a0808,#0d0404)}
 .target-btn:active{transform:scale(0.97)}
 .pcard{background:var(--velvet);border-radius:14px;overflow:hidden;margin-bottom:12px;box-shadow:var(--sh);border:1px solid rgba(185,28,28,0.2)}
@@ -271,25 +285,25 @@ color:var(--cream)
 .pcard-b div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(185,28,28,0.1)}
 .pcard-b div:last-child{border-bottom:none}
 .tbs{display:flex;margin-bottom:15px;border-radius:12px;overflow:hidden;border:1px solid rgba(185,28,28,0.3)}
-.tab{flex:1;padding:14px;border:none;background:var(--velvet);color:rgba(245,245,220,0.5);font-weight:700;cursor:pointer;font-size:0.85rem;font-family:'Montserrat',sans-serif}
+.tab{flex:1;padding:14px;border:none;background:var(--velvet);color:rgba(245,245,220,0.55);font-weight:400;cursor:pointer;font-size:0.9rem;letter-spacing:1px;text-transform:uppercase;font-family:'Fjalla One','Montserrat',sans-serif}
 .tab.on{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream)}
 .fs{margin-bottom:12px}
 .fs label{display:block;margin-bottom:6px;font-weight:700;color:var(--cream);font-size:0.85rem}
-.fs input,.fs select{width:100%;padding:14px;border:2px solid rgba(185,28,28,0.3);border-radius:10px;background:var(--velvet);color:var(--cream);font-size:0.9rem;font-family:'Montserrat',sans-serif}
+.fs input,.fs select{width:100%;padding:14px;border:1px solid rgba(185,28,28,0.4);border-radius:10px;background:rgba(0,0,0,.45);color:var(--cream);font-size:0.9rem;font-family:'Montserrat',sans-serif}
 .fs input:focus,.fs select:focus{outline:none;border-color:var(--ruby)}
-.tst{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(145deg,var(--velvet2),var(--velvet));border:3px solid var(--ruby);border-radius:20px;padding:25px 40px;text-align:center;z-index:200;transition:transform 0.3s;max-width:85%;box-shadow:0 20px 60px rgba(185,28,28,0.4)}
+.tst{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(165deg,#1b1213,var(--velvet));border:1px solid rgba(212,175,55,.35);border-radius:20px;padding:25px 40px;text-align:center;z-index:200;transition:transform 0.3s;max-width:85%;box-shadow:0 24px 70px rgba(0,0,0,.8),0 0 50px -10px rgba(185,28,28,0.45)}
 .tst.on{transform:translate(-50%,-50%) scale(1)}
 .tst h3{font-size:2.2rem;color:var(--cream)}.tst p{color:rgba(245,245,220,0.7);font-size:0.95rem;margin-top:8px}
-.timer-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(145deg,var(--velvet2),var(--velvet));border:4px solid var(--ruby);border-radius:24px;padding:35px;text-align:center;z-index:250;display:none;box-shadow:0 25px 70px rgba(185,28,28,0.5);min-width:260px;max-width:90vw}
+.timer-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(165deg,#1b1213,var(--velvet));border:1px solid rgba(212,175,55,.35);border-radius:24px;padding:35px;text-align:center;z-index:250;display:none;box-shadow:0 30px 80px rgba(0,0,0,.85),0 0 60px -12px rgba(185,28,28,0.5);min-width:260px;max-width:90vw}
 .timer-popup.on{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 .timer-popup .td{font-size:4rem;font-weight:700;color:var(--cream);font-family:'Montserrat',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0.02em;text-align:center;margin:0;padding:0;line-height:1}
 .timer-popup p{margin:0;padding:0;text-align:center;width:100%}
-.timer-popup .tsk{background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;padding:14px 36px;border:none;border-radius:20px;font-weight:700;cursor:pointer;font-size:1rem;text-transform:uppercase;letter-spacing:2px;font-family:'Montserrat',sans-serif;margin:0}
+.timer-popup .tsk{background:linear-gradient(180deg,#e8c34c,#b8912a);color:#1a1206;padding:14px 36px;border:none;border-radius:20px;font-weight:400;cursor:pointer;font-size:1.05rem;text-transform:uppercase;letter-spacing:2px;font-family:'Fjalla One','Montserrat',sans-serif;margin:0;box-shadow:0 10px 26px -8px rgba(212,175,55,.55),inset 0 1px 0 rgba(255,255,255,.4)}
 .timer-active .intro-glow{animation:none !important}
 .timer-active .particle{animation:none !important}
 
-.challenge-card{background:linear-gradient(145deg,#2a1a2a,#1a0a1a);border:2px solid #a855f7;border-radius:16px;padding:22px;text-align:center;margin:12px 0}
-.challenge-card h3{color:#c084fc;font-size:1.1rem;margin-bottom:12px;font-weight:700}
+.challenge-card{background:radial-gradient(120% 80% at 50% -10%,rgba(124,64,224,.22),transparent 60%),linear-gradient(165deg,#221226,#140a16);border:1px solid rgba(139,92,246,.45);border-radius:16px;padding:22px;text-align:center;margin:12px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.challenge-card h3{color:#c4a2ff;font-family:'Fjalla One','Montserrat',sans-serif;font-size:1.15rem;margin-bottom:12px;font-weight:400;letter-spacing:1.5px}
 .challenge-card p{color:var(--cream);font-size:0.95rem;line-height:1.5}
 .rules-list{text-align:left;color:rgba(245,245,220,0.8);line-height:1.7;font-size:0.85rem}
 .rules-list h4{color:var(--cream);margin:15px 0 8px;font-size:0.9rem;font-weight:700;letter-spacing:1px}
@@ -314,7 +328,7 @@ color:var(--cream)
 .plan-badge{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;font-size:7px;font-weight:800;padding:2px 6px;border-radius:5px;letter-spacing:0.5px}
 .plan-icon{font-size:1.3rem;margin-bottom:2px}
 .plan-name{color:var(--cream);font-weight:700;font-size:0.65rem;margin-bottom:2px;letter-spacing:0.5px}
-.plan-price{color:var(--ruby);font-size:0.95rem;font-weight:800}
+.plan-price{color:var(--ruby3);font-family:'Fjalla One','Montserrat',sans-serif;font-size:1.05rem;font-weight:400}
 .plan-price span{font-size:0.5rem;color:rgba(245,245,220,0.5);font-weight:600}
 .plan-savings{color:#22c55e;font-size:0.5rem;margin-top:1px;font-weight:600}
 .paywall-divider{display:flex;align-items:center;margin:12px 0}
@@ -374,7 +388,7 @@ color:var(--cream)
 .intro-cta{padding-top:8px;padding-bottom:calc(8px + var(--banner-h,0px))}
 }
 /* Accesso secondario dall'intro: chi ha la scatola non deve cercarlo. */
-.intro-ghost{display:block;margin:10px auto 0;background:none;border:1px solid rgba(212,175,55,.45);color:var(--gold);padding:10px 22px;border-radius:24px;font-size:.78rem;font-weight:700;letter-spacing:1px;cursor:pointer;font-family:'Montserrat',sans-serif;text-transform:uppercase}
+.intro-ghost{display:block;margin:10px auto 0;background:none;border:1px solid rgba(212,175,55,.45);color:var(--gold);padding:10px 22px;border-radius:24px;font-size:.85rem;font-weight:400;letter-spacing:1.5px;cursor:pointer;font-family:'Fjalla One','Montserrat',sans-serif;text-transform:uppercase}
 .intro-ghost:active{transform:translateY(2px)}
 
 /* ===== MODALITA' TABELLONE (l'app fa da banco per il gioco fisico) ===== */
@@ -388,9 +402,9 @@ color:var(--cream)
 .hyb-pl .m.neg{color:#ef4444}
 .hyb-tot{color:rgba(245,245,220,.7);font-size:.85rem;margin-top:8px;min-height:1.2em}
 .hyb-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
-.hyb-card-btn{padding:18px 10px;border-radius:14px;font-weight:800;font-size:.85rem;letter-spacing:1px;font-family:'Montserrat',sans-serif;cursor:pointer;text-transform:uppercase}
-.hyb-card-btn.imp{background:linear-gradient(145deg,var(--ruby2),var(--ruby));color:var(--cream);border:1px solid var(--ruby3)}
-.hyb-card-btn.prob{background:linear-gradient(145deg,var(--gold),#c9a227);color:#000;border:1px solid #e8c547}
+.hyb-card-btn{padding:18px 10px;border-radius:14px;font-weight:400;font-size:.95rem;letter-spacing:1.5px;font-family:'Fjalla One','Montserrat',sans-serif;cursor:pointer;text-transform:uppercase}
+.hyb-card-btn.imp{background:linear-gradient(180deg,#e23434 0%,var(--ruby) 55%,#8f1414 100%);color:var(--cream2);border:1px solid var(--ruby3);box-shadow:0 10px 26px -8px rgba(185,28,28,.5),inset 0 1px 0 rgba(255,255,255,.22)}
+.hyb-card-btn.prob{background:linear-gradient(180deg,#e8c34c,#b8912a);color:#1a1206;border:1px solid #e8c547;box-shadow:0 10px 26px -8px rgba(212,175,55,.5),inset 0 1px 0 rgba(255,255,255,.4)}
 .hyb-card-btn:active{transform:translateY(2px)}
 .hyb-reset{display:block;margin:18px auto 0;background:none;border:none;color:rgba(245,245,220,.45);font-size:.8rem;text-decoration:underline;cursor:pointer;font-family:'Montserrat',sans-serif}
 .hyb-drawn{font-size:1.05rem;line-height:1.55;color:var(--cream);text-align:center;padding:14px 4px}
@@ -401,7 +415,7 @@ color:var(--cream)
 .hyb-owner{flex:0 0 auto;font-size:.75rem;color:var(--gold);font-weight:700}
 .hyb-sel{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .hyb-sel button{flex:1;min-width:70px;padding:12px 8px;border-radius:10px;background:linear-gradient(145deg,var(--velvet3),var(--velvet));border:1px solid rgba(212,175,55,.5);color:var(--gold);font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif}
-.hyb-money{text-align:center;font-size:1.8rem;font-weight:800;color:var(--gold);margin:4px 0 12px;font-family:'Montserrat',sans-serif}
+.hyb-money{text-align:center;font-size:2rem;font-weight:400;color:var(--gold);margin:4px 0 12px;font-family:'Fjalla One','Montserrat',sans-serif;text-shadow:0 2px 14px rgba(212,175,55,.3)}
 .hyb-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hyb-quick button{padding:13px 8px;border-radius:10px;border:1px solid rgba(185,28,28,.35);background:linear-gradient(145deg,var(--velvet2),var(--velvet));color:var(--cream);font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.8rem}
 .hyb-amt-row{display:flex;gap:8px;margin-top:10px}
@@ -445,7 +459,7 @@ body.has-trial-banner .dc{padding-bottom:calc(35px + env(safe-area-inset-bottom,
 
 /* ========== DEVICE LIMIT MODAL ========== */
 .device-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);justify-content:center;align-items:center;z-index:10001;padding:20px}
-.device-modal-content{background:linear-gradient(145deg,var(--velvet2),var(--velvet));border:2px solid var(--ruby);border-radius:16px;padding:25px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto}
+.device-modal-content{background:linear-gradient(165deg,#171112,var(--velvet));border:1px solid rgba(212,175,55,.25);border-radius:18px;padding:25px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.85)}
 .device-modal-content h2{color:var(--ruby);font-size:1.2rem;margin-bottom:15px;text-align:center}
 .device-modal-content p{color:var(--cream);font-size:0.9rem;margin-bottom:20px;text-align:center;opacity:0.8}
 .device-item{display:flex;justify-content:space-between;align-items:center;padding:12px;margin:8px 0;background:rgba(0,0,0,0.4);border-radius:10px;border:1px solid rgba(185,28,28,0.3)}
