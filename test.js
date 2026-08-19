@@ -204,8 +204,8 @@ verifica('il paywall mostra il listino vero', /€4,99<span>\/mese/.test(html) &
   'l\'app prometteva prezzi diversi da quelli che il sito incassa');
 verifica('niente prezzi del listino vecchio nel paywall', !/€199\.99|€699\.99|€1\.99|€19\.99|€69\.99|13,99|48,99|59,88/.test(html),
   'i valori del listino precedente riapparivano e contraddicevano il sito');
-verifica('i barrati seguono la regola di Yves (+25%, +50% annuale)', /€6,24/.test(html) && /€29,99/.test(html) && /€87,49/.test(html),
-  'compare decisi il 19/08: mensile e lifetime +25%, annuale +50%');
+verifica('i barrati seguono la regola di Yves (+25%, +50% annuale)', /€6,49/.test(html) && /€29,99/.test(html) && /€87,49/.test(html),
+  'compare decisi il 19/08: mensile 6,49 (arrotondato) e lifetime +25%, annuale +50%');
 
 sezione('Modalità tabellone');
 verifica('si entra dall\'intro e dal setup', /intro-ghost" onclick="goHybrid\(\)"/.test(html) && (html.match(/onclick="goHybrid\(\)"/g) || []).length >= 2,
