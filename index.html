@@ -170,6 +170,26 @@ color:var(--cream)
 .ni input:focus{outline:none;border-color:var(--ruby)}
 .ni input::placeholder{color:rgba(245,245,220,0.3)}
 .ni .gicon{font-size:1.5rem}
+/* Penitenza: il campo sta sotto il nome, rientrato, cosi' si legge come una
+   riga di dettaglio del giocatore e non come una domanda a se' stante. */
+.pen-riga{margin:-2px 0 10px 45px}
+.pen-riga input{width:100%;padding:11px 12px;border:1px dashed rgba(212,175,55,.4);border-radius:9px;
+  background:rgba(0,0,0,.4);color:var(--cream);font-size:.85rem;font-family:'Montserrat',sans-serif}
+.pen-riga input:focus{outline:none;border-style:solid;border-color:var(--gold)}
+.pen-riga input::placeholder{color:rgba(245,245,220,.32)}
+.pen-nota{font-size:.72rem;color:rgba(245,245,220,.5);text-align:center;line-height:1.45;margin:2px 0 4px}
+/* Il verdetto di fine partita: e' il momento che tutti aspettano, quindi ha
+   il suo riquadro, non una riga in mezzo alle altre. */
+.go-pen{display:none;margin:4px 0 18px;padding:16px 14px;border-radius:14px;
+  background:linear-gradient(165deg,#200a0c,#0d0405);border:1px solid rgba(220,38,38,.55);
+  box-shadow:0 14px 34px -12px rgba(185,28,28,.55)}
+.go-pen.on{display:block;animation:penApp .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes penApp{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+.go-pen .pen-tit{font-family:'Fjalla One','Montserrat',sans-serif;font-size:.82rem;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.go-pen .pen-testo{font-size:1.05rem;line-height:1.45;color:var(--cream2);font-weight:600;word-break:break-word}
+.go-pen .pen-chi{margin-top:10px;font-size:.8rem;color:rgba(245,245,220,.6)}
+@media (prefers-reduced-motion:reduce){.go-pen.on{animation:none}}
 .btn{display:block;width:100%;padding:18px;border:none;border-radius:12px;font-size:1.05rem;font-weight:400;cursor:pointer;margin-top:12px;text-transform:uppercase;letter-spacing:1.5px;font-family:'Fjalla One','Montserrat',sans-serif}
 .btn.p{background:linear-gradient(180deg,#e23434 0%,var(--ruby) 55%,#8f1414 100%);color:var(--cream2);box-shadow:0 12px 30px -8px rgba(185,28,28,0.6),0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,0.25);border:1px solid var(--ruby3)}
 .btn.p:active{transform:translateY(3px);box-shadow:0 3px 15px rgba(185,28,28,0.4)}
@@ -1666,7 +1686,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <div id="viewM" class="mdl"><div class="mc"><div class="mh"><h2>📋 CARTE PROPRIETÀ</h2></div><div class="fs"><label>Seleziona:</label><select id="viewS" onchange="showVC()"></select></div><div id="viewC"></div><button class="mb s" onclick="closeM('viewM')">CHIUDI</button></div></div>
 <div id="tmM" class="mdl"><div class="mc"><div class="mh"><h2>⏱️ TIMER</h2></div><div class="fs"><label>Minuti:</label><input type="range" id="tmSl" min="1" max="10" value="2" oninput="updTmV()"></div><p style="text-align:center;font-size:1.6rem;color:var(--cream);font-weight:700" id="tmV">2 minuti</p><button class="mb p" onclick="startMTm()">▶️ AVVIA</button><button class="mb s" onclick="closeM('tmM')">CHIUDI</button></div></div>
 <div id="buildPropM" class="mdl"><div class="mc"><div class="mh"><h2 id="buildPropTl">🏗️ COSTRUISCI</h2></div><div id="buildPropC"></div><button class="mb s" onclick="closeM('buildPropM')">CHIUDI</button></div></div>
-<div id="goM" class="mdl"><div class="mc" style="text-align:center;position:relative;overflow:hidden"><div id="confettiBox"></div><div style="font-size:4rem;margin-bottom:12px" id="goI">🏆</div><div style="font-size:1.5rem;color:var(--cream);margin-bottom:10px;letter-spacing:2px;font-weight:700" id="goMsg">GAME OVER</div><div style="font-size:1.8rem;color:var(--gold);margin-bottom:18px;font-weight:800" id="goP"></div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="mb p" id="goB" onclick="handleGO()">OK</button><button class="mb s" onclick="showHistGO()">📜 CRONOLOGIA</button></div></div></div>
+<div id="goM" class="mdl"><div class="mc" style="text-align:center;position:relative;overflow:hidden"><div id="confettiBox"></div><div style="font-size:4rem;margin-bottom:12px" id="goI">🏆</div><div style="font-size:1.5rem;color:var(--cream);margin-bottom:10px;letter-spacing:2px;font-weight:700" id="goMsg">GAME OVER</div><div style="font-size:1.8rem;color:var(--gold);margin-bottom:18px;font-weight:800" id="goP"></div><div id="goPen" class="go-pen"></div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="mb p" id="goB" onclick="handleGO()">OK</button><button class="mb s" onclick="showHistGO()">📜 CRONOLOGIA</button></div></div></div>
 
 <div id="volumeM" class="mdl"><div class="mc" style="max-width:320px">
 <div class="mh"><h2>🔊 AUDIO</h2></div>
@@ -1792,6 +1812,71 @@ async function callOpenAI(endpoint, body) {
 // pronunce). Fallback automatico a tts-1 se il modello non fosse disponibile;
 // MAI su errori di quota (riprovare sarebbe inutile e costoso).
 var TTS_MODEL = 'gpt-4o-mini-tts';
+// ========== RETE DI SICUREZZA DEL NARRATORE ==========
+// Il 20 agosto un giocatore si e' visto scritto a schermo, in mezzo a una
+// partita in italiano: "Narratore You have no credits remaining. Add credits
+// to cont". Era il messaggio grezzo dell'API OpenAI, troncato a 50 caratteri
+// e mostrato in un toast. Tre difetti in uno:
+//  1. un errore tecnico in inglese addosso a chi sta giocando, che per giunta
+//     sembra chiedere a LUI di ricaricare dei crediti;
+//  2. il controllo di ripiego cercava la parola "quota" nel messaggio, ma
+//     "no credits remaining" non la contiene, quindi partiva anche un secondo
+//     tentativo inutile con un altro modello prima di arrendersi;
+//  3. nessun ripiego: il narratore dipendeva solo da OpenAI e senza credito
+//     restava muto per sempre.
+// Qui si chiudono tutti e tre.
+
+// Quando l'account e' a secco non ha senso richiamare l'API a ogni carta:
+// si alza l'interruttore una volta e si passa alla voce del telefono.
+var ttsFuoriServizio = false;
+
+// Famiglia di errori "non ci sono soldi o quota". Il messaggio di OpenAI e'
+// cambiato nel tempo (quota, credits, billing): si riconoscono tutti.
+function erroreDiCredito(msg, code) {
+  var t = String(msg || '') + ' ' + String(code || '');
+  // Un rate limit e' passeggero e non deve spegnere il narratore per tutta la
+  // serata: si ritenta. OpenAI pero' usa il 429 sia per il rate limit sia per
+  // il credito finito, quindi il testo del messaggio ha la precedenza.
+  if (/rate.?limit/i.test(t) && !/quota|credit|billing|insufficient/i.test(t)) return false;
+  return /quota|credit|billing|insufficient|payment|402|429/i.test(t);
+}
+
+// Voce di riserva: quella integrata nel telefono. Non e' bella come il
+// narratore vero, ma parla italiano, e' gratis e non finisce mai. Meglio una
+// voce meno calda che un errore in inglese o il silenzio.
+var _voceBrowserPronta = false;
+function vociItaliane() {
+  try {
+    var v = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    return v.filter(function (x) { return /^it(-|_|$)/i.test(x.lang || ''); });
+  } catch (e) { return []; }
+}
+try {
+  if (window.speechSynthesis) {
+    // Su Chrome le voci arrivano in modo asincrono: senza questo la prima
+    // frase uscirebbe con la voce di sistema sbagliata o non uscirebbe.
+    window.speechSynthesis.onvoiceschanged = function () { _voceBrowserPronta = true; };
+    vociItaliane();
+  }
+} catch (e) {}
+
+function parlaColBrowser(testo, quandoFinisce) {
+  var fine = typeof quandoFinisce === 'function' ? quandoFinisce : function () {};
+  try {
+    if (!window.speechSynthesis || !testo) { fine(); return false; }
+    var u = new SpeechSynthesisUtterance(String(testo));
+    var it = vociItaliane();
+    if (it.length) u.voice = it[0];
+    u.lang = 'it-IT';
+    u.rate = 1.05;
+    u.onend = fine;
+    u.onerror = fine;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+    return true;
+  } catch (e) { fine(); return false; }
+}
+
 var TTS_INSTRUCTIONS = 'Parla in italiano perfetto, con dizione impeccabile: ogni parola pronunciata in modo chiaro, mai storpiata. Voce calda, avvolgente e seducente: sei il maestro di cerimonie di un gioco intimo per coppie. Ritmo svelto e brillante, circa il venti per cento piu veloce di un parlato rilassato, senza mai mangiare le parole. Pause brevi ed eleganti. Tono complice, con un sorriso nella voce. Mai robotico, mai monotono, mai cantilenante.';
 
 function ttsPayload(text, voice, model) {
@@ -1818,8 +1903,13 @@ async function callOpenAITTS(text, voice, model) {
       if (!data.audio) {
         var msg = data.error || 'TTS response senza audio';
         console.error('TTS error:', msg, 'code:', data.code);
-        if (model !== 'tts-1' && !/quota/i.test(msg)) { return callOpenAITTS(text, voice, 'tts-1'); }
-        if (typeof toast === 'function') toast('⚠️', 'Narratore ' + msg.substring(0, 50));
+        if (erroreDiCredito(msg, data.code)) {
+          // Account a secco: inutile ritentare con un altro modello, e
+          // soprattutto niente errori dell'API addosso al giocatore.
+          ttsFuoriServizio = true;
+          throw new Error('tts-fuori-servizio');
+        }
+        if (model !== 'tts-1') { return callOpenAITTS(text, voice, 'tts-1'); }
         throw new Error(msg);
       }
       var binary = atob(data.audio);
@@ -1833,10 +1923,13 @@ async function callOpenAITTS(text, voice, model) {
     var em = 'TTS HTTP ' + resp.status, ec = 'tts_error';
     try { var err = await resp.json(); em = err.error || em; ec = err.code || ec; } catch (e) {}
     console.error('TTS HTTP error:', em, 'code:', ec);
-    if (model !== 'tts-1' && ec !== 'insufficient_quota' && !/quota/i.test(em)) {
+    if (erroreDiCredito(em, ec) || resp.status === 402 || resp.status === 429) {
+      ttsFuoriServizio = true;
+      throw new Error('tts-fuori-servizio');
+    }
+    if (model !== 'tts-1') {
       return callOpenAITTS(text, voice, 'tts-1');
     }
-    if (typeof toast === 'function') toast('⚠️', 'Narratore ' + em.substring(0, 50));
     throw new Error(em);
   } else {
     var payload = ttsPayload(text, voice, model);
@@ -2622,6 +2715,23 @@ var bg=E('bgMusic');
 if(bg&&bgMusicPlaying){bg.volume=duckingVolume;}
 // Pausa microfono per evitare conflitti su iOS
 pauseMicForAudio();
+// Narratore fuori servizio (account a secco): niente chiamata, si parla
+// con la voce del telefono. Cosi' la serata continua invece di restare muta.
+if(ttsFuoriServizio){
+console.log('processAudioQueue: narratore fuori servizio, uso la voce del telefono');
+window._conteText=t;
+try{conteSay('wink',t,Math.max(6000,(t||'').length*90));}catch(_e){}
+var passa=function(){
+if(myGen!==speechGen)return;
+if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
+aiAudioPlaying=false;
+if(bg&&bgMusicPlaying){bg.volume=musicVolume;}
+resumeMicAfterAudio();
+processAudioQueue();
+};
+if(!parlaColBrowser(t,passa))passa();
+return;
+}
 console.log('processAudioQueue: chiamo API TTS...');
 try{
 window._conteText=t;
@@ -2712,9 +2822,19 @@ console.log('TTS error:',e.message||e);
    e certe sfide vanno lette con calma. */
 try{conteSay('wink',t,Math.max(9000,(t||'').length*110));}catch(_e){}
 if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
-aiAudioPlaying=false;
 if(bg&&bgMusicPlaying){bg.volume=musicVolume;}
 resumeMicAfterAudio();
+// Se e' saltato per credito finito, questa frase la legge la voce del
+// telefono: la coppia non perde la carta appena pescata.
+if(ttsFuoriServizio&&String(e&&e.message)==='tts-fuori-servizio'){
+var passa2=function(){
+if(myGen!==speechGen)return;
+aiAudioPlaying=false;
+processAudioQueue();
+};
+if(parlaColBrowser(t,passa2))return;
+}
+aiAudioPlaying=false;
 processAudioQueue();
 }
 }
@@ -3430,6 +3550,12 @@ function isFemale(name){if(!name)return false;var n=name.toLowerCase().trim();if
 // con "Fra<b>" il grassetto mai chiuso finiva per avvolgere anche soldi e
 // posizione. Si ripuliscono una volta sola in ingresso, invece di rincorrere
 // trenta punti di stampa. La e commerciale resta, perche' in un nome ci sta.
+function penitenzaPulita(t){
+if(typeof t!=='string')return '';
+/* Stessa difesa dei nomi: si toglie il markup perche' finisce dentro innerHTML,
+   e si taglia la lunghezza. Sul merito non si tocca niente. */
+return t.replace(/<[^>]*>/g,'').replace(/[<>]/g,'').trim().substring(0,140);
+}
 function nomePulito(n){return String(n==null?"":n).replace(/[<>]/g,"").trim().slice(0,20)||null}
 function shortName(n){return !n?'?':(n.length>12?n.substring(0,11)+'…':n)}
 var CLOTHES_M=['🩲','👕','👖','🧦','👟'],CLOTHES_F=['👙','👚','👗','🧦','👠'];
@@ -3541,7 +3667,14 @@ function saveAndExit(){saveGame();toast('💾','Salvato!');stopBgMusic();stopSpe
 function confirmSave(){saveGame();toast('💾','Salvato!')}
 checkSave();
 function addHist(txt){if(!G.history)G.history=[];G.history.unshift({txt:txt,time:Date.now()});if(G.history.length>20)G.history.pop();saveGame()}
-function selP(n){G.np=n;document.querySelectorAll('#setup .po').forEach(function(el){el.classList.remove('sel')});event.target.closest('.po').classList.add('sel');var h='';for(var i=0;i<n;i++)h+='<div class="ni"><label>G'+(i+1)+'</label><input type="text" id="pn'+i+'" placeholder="Nome..."><span class="gicon" id="gicon'+i+'">👤</span></div>';h+='<button class="btn p" onclick="startGame()">✦ INIZIA PARTITA ✦</button>';E('pnames').innerHTML=h;E('pnames').classList.add('on');for(var i=0;i<n;i++){(function(idx){E('pn'+idx).oninput=function(){E('gicon'+idx).textContent=isFemale(this.value)?'👩':'👨'}})(i)}}
+function selP(n){G.np=n;document.querySelectorAll('#setup .po').forEach(function(el){el.classList.remove('sel')});event.target.closest('.po').classList.add('sel');var h='';for(var i=0;i<n;i++){
+h+='<div class="ni"><label>G'+(i+1)+'</label><input type="text" id="pn'+i+'" placeholder="Nome..."><span class="gicon" id="gicon'+i+'">👤</span></div>';
+/* La penitenza la scrive ognuno per chi perde: si scrive prima, quando ancora
+   nessuno sa come andra' a finire, ed e' quello che la rende divertente. */
+h+='<div class="pen-riga"><input type="text" id="pen'+i+'" maxlength="140" placeholder="Penitenza che imponi a chi perde (facoltativa)"></div>';
+}
+h+='<p class="pen-nota">La penitenza resta nascosta fino alla fine. Chi perde esegue quella scritta da chi vince.</p>';
+h+='<button class="btn p" onclick="startGame()">✦ INIZIA PARTITA ✦</button>';E('pnames').innerHTML=h;E('pnames').classList.add('on');for(var i=0;i<n;i++){(function(idx){E('pn'+idx).oninput=function(){E('gicon'+idx).textContent=isFemale(this.value)?'👩':'👨'}})(i)}}
 var _fxRAF=null,_fxCv=null,_fxCtx=null,_fxP=[],_fxW=0,_fxH=0,_fxDpr=1;
 function fxMotoOk(){try{return !window.matchMedia('(prefers-reduced-motion:reduce)').matches}catch(e){return true}}
 function fxQuante(){
@@ -3674,7 +3807,7 @@ if(aiEnabled&&aiApiKey){
 setTimeout(readIntroAI,1500);
 }
 }
-function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=nomePulito(E('pn'+i).value)||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(precacheContePoses,1200);
+function startGame(){G.ps=[];for(var i=0;i<G.np;i++){var name=nomePulito(E('pn'+i).value)||'G'+(i+1);G.ps.push({id:i,name:name,money:1500,pos:1,clothes:4,clothesArr:[1,1,1,1,0],isFemale:isFemale(name),jail:false,jailT:0,props:[],out:false,penitenza:penitenzaPulita(E('pen'+i)&&E('pen'+i).value)})}G.props={};G.round=1;G.cp=0;G.createdRules=[];G.posRules={};G.history=[];sCh=getCh();chI=0;sCs=shuf(csC.slice());csI=0;E('setup').classList.remove('on');E('game').classList.add('on');E('hdrBtns').style.display='flex';startBgMusic();render();updTurn();addHist('Partita iniziata');setTimeout(precacheContePoses,1200);
 /* La voce si scalda da subito, non alla prima frase: fra l'inizio partita e
    il primo lancio passano secondi che prima venivano sprecati, e la prima
    casella arrivava dopo tre secondi di silenzio. */
@@ -3931,7 +4064,39 @@ function endTurn(){E('rbtn').disabled=false;selT=null;pendChallenge=null;pendBuy
 // Il cambio turno resta visivo (header + colore pedina), la voce tace.
 function announceNewTurn(){}
 function removeOneFromAll(){G.ps.forEach(function(p){if(p&&!p.out)removeOneCloth(p)});addHist('🔥 Tutti -1 vestito');render();saveGame();G.ps.forEach(function(p){if(p&&!p.out)checkOneClothWarning(p)});G.ps.forEach(function(p){if(p)chkOverPlayer(p)})}
-function chkOverPlayer(p){if(!p||p.out)return;if(p.money<=0||p.clothes<=0){p.out=true;if(p.props)p.props.forEach(function(pos){delete G.props[pos]});p.props=[];var act=getAct();if(act.length<=1){E('goI').textContent='🏆';E('goI').className='win-anim';E('goMsg').textContent='🎉 VINCITORE! 🎉';E('goMsg').className='win-text';E('goP').textContent=act[0]?act[0].name:'';E('goB').textContent='🔄 NUOVA PARTITA';E('goB').onclick=restart;tap('forte');if(act[0])speak(act[0].name+' vince la partita!');setTimeout(launchConfetti,100);try{playVictoryFilm(act[0]?act[0].name:'')}catch(_e){}}else{E('goI').textContent='💔';E('goI').className='';E('goMsg').textContent=p.money<=0?'BANCAROTTA!':'ELIMINATO!';E('goMsg').className='';E('goP').textContent=p.name;E('goB').textContent='CONTINUA';E('goB').onclick=function(){closeM('goM')};speak(p.name+' è stato eliminato!');try{conteReact('laugh')}catch(_e){}}E('goM').classList.add('on');render();saveGame()}}
+function mostraPenitenza(vincitore,perdente){
+var box=E('goPen');
+var testo=vincitore&&typeof vincitore.penitenza==='string'?vincitore.penitenza.trim():'';
+if(!testo||!perdente){
+if(box){box.classList.remove('on');box.innerHTML=''}
+if(vincitore)speak(vincitore.name+' vince la partita!');
+return;
+}
+if(box){
+box.innerHTML='<div class="pen-tit">La penitenza di '+escapeHtml(shortName(vincitore.name))+'</div>'+
+  '<div class="pen-testo">'+escapeHtml(testo)+'</div>'+
+  '<div class="pen-chi">Tocca a '+escapeHtml(shortName(perdente.name))+'</div>';
+box.classList.add('on');
+}
+try{tap('forte')}catch(e){}
+/* Il narratore lo dice per intero: la penitenza va sentita, non letta di
+   sfuggita. Prima il vincitore, poi il verdetto, poi la penitenza. */
+speak([vincitore.name+' vince la partita.',
+       perdente.name+', hai perso. Ora devi eseguire la penitenza che '+vincitore.name+' ha scritto prima di cominciare.',
+       testo]);
+}
+function escapeHtml(t){
+return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function chkOverPlayer(p){if(!p||p.out)return;if(p.money<=0||p.clothes<=0){p.out=true;if(p.props)p.props.forEach(function(pos){delete G.props[pos]});p.props=[];var act=getAct();if(act.length<=1){E('goI').textContent='🏆';E('goI').className='win-anim';E('goMsg').textContent='🎉 VINCITORE! 🎉';E('goMsg').className='win-text';E('goP').textContent=act[0]?act[0].name:'';E('goB').textContent='🔄 NUOVA PARTITA';E('goB').onclick=restart;tap('forte');setTimeout(launchConfetti,100);
+/* Il conto in sospeso: chi ha perso esegue la penitenza scritta dal vincitore
+   a inizio partita, quando ancora non sapeva chi sarebbe stato. Il verdetto
+   arriva dopo il film, sul riquadro che si vede, non sopra all'animazione. */
+var _vinc=act[0],_pers=p;
+var _annuncio=function(){try{mostraPenitenza(_vinc,_pers)}catch(_e){}};
+var _fatto=false,_una=function(){if(_fatto)return;_fatto=true;_annuncio()};
+try{playVictoryFilm(_una)}catch(_e){_una()}
+setTimeout(_una,5000);}else{E('goI').textContent='💔';E('goI').className='';E('goMsg').textContent=p.money<=0?'BANCAROTTA!':'ELIMINATO!';E('goMsg').className='';E('goP').textContent=p.name;E('goB').textContent='CONTINUA';E('goB').onclick=function(){closeM('goM')};speak(p.name+' è stato eliminato!');try{conteReact('laugh')}catch(_e){}}E('goM').classList.add('on');render();saveGame()}}
 function chkOver(){for(var i=0;i<G.ps.length;i++){if(G.ps[i]&&!G.ps[i].out&&(G.ps[i].money<=0||G.ps[i].clothes<=0)){chkOverPlayer(G.ps[i]);break}}}
 function handleGO(){getAct().length<=1?restart():closeM('goM')}
 function restart(){closeM('goM');if(TM.main)clearInterval(TM.main);if(TM.bg)clearInterval(TM.bg);tiedData={pid:null,rem:0};babyData={from:null,to:null};pendBuy=null;stopStripMusic();stopBgMusic();try{localStorage.removeItem('adultopia_save')}catch(e){}E('game').classList.remove('on');E('setup').classList.remove('on');E('intro').classList.add('on');E('hdrBtns').style.display='none';E('pnames').classList.remove('on');E('loadBtn').style.display='none';document.querySelectorAll('#setup .po').forEach(function(el){el.classList.remove('sel')});G={np:0,ps:[],cp:0,dice:[0,0],props:{},round:1,auct:null,mode:'n',createdRules:[],posRules:{},history:[]}}
@@ -3953,11 +4118,11 @@ function showHistGO(){closeM('goM');showHist()}
 // Film di vittoria: la celebrazione scorre a schermo pieno sopra la schermata
 // dei risultati, poi svanisce e lascia il verdetto. Se il video non parte
 // (autoplay negato, file assente) il velo si toglie da solo: mai schermo nero.
-function playVictoryFilm(){
+function playVictoryFilm(alFine){
 var v=document.getElementById('victoryFilm');
-if(!v)return;
+if(!v){if(alFine)alFine();return}
 var closed=false;
-var done=function(){if(closed)return;closed=true;v.classList.remove('on');try{v.pause()}catch(e){}};
+var done=function(){if(closed)return;closed=true;v.classList.remove('on');try{v.pause()}catch(e){}if(alFine)alFine();};
 try{v.currentTime=0}catch(e){}
 v.onended=done;
 v.onerror=done;

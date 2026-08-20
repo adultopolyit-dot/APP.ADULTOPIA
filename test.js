@@ -252,6 +252,20 @@ verifica('la X propone il mensile invece di chiudere e basta', /function paywall
   'chi chiude un paywall annuale spesso direbbe si\' al mensile: chiudere e basta butta via quella risposta');
 verifica('il paywall ha un\'immagine eroe, non solo testo', /class="pw-hero" src="assets\/pw-hero\.webp"/.test(zonaPaywall) && /assets\/pw-hero\.webp/.test(sw),
   'sui paywall studiati l\'immagine grande del prodotto batte il muro di testo, e offline deve esserci comunque');
+sezione('Penitenza di fine partita');
+verifica('la penitenza si scrive prima di cominciare', /id="pen'\+i\+'"/.test(html) && /penitenza:penitenzaPulita/.test(html),
+  'scritta a partita finita non sarebbe una scommessa: si scrive quando non si sa ancora chi perde');
+verifica('chi perde esegue quella scritta da chi vince', /var _vinc=act\[0\],_pers=p;/.test(html) && /mostraPenitenza\(_vinc,_pers\)/.test(html) && /function mostraPenitenza/.test(html),
+  'act[0] e\' l\'ultimo rimasto in gioco e p e\' chi e\' appena uscito: invertirli farebbe eseguire la penitenza al vincitore');
+verifica('il verdetto arriva dopo il film, non sopra', /playVictoryFilm\(_una\)/.test(html) && /function playVictoryFilm\(alFine\)/.test(html) && /setTimeout\(_una,5000\)/.test(html),
+  'annunciata sopra all\'animazione la penitenza si perde: cade sul riquadro quando si vede, e la rete di sicurezza copre il caso del film che non parte');
+verifica('il narratore la annuncia per intero', /perdente\.name\+', hai perso/.test(html) && /speak\(\[vincitore\.name/.test(html),
+  'letta di sfuggita sullo schermo non vale: il momento e\' l\'annuncio ad alta voce');
+verifica('senza penitenza la fine partita resta quella di prima', /if\(!testo\|\|!perdente\)/.test(html) && /vince la partita!'\)/.test(html),
+  'il campo e\' facoltativo: chi non lo compila non deve trovare un riquadro vuoto');
+verifica('la penitenza non puo\' iniettare markup', /function penitenzaPulita/.test(html) && /function escapeHtml/.test(html) && /escapeHtml\(testo\)/.test(html),
+  'finisce dentro innerHTML: sul contenuto non si censura niente, ma i tag vanno neutralizzati');
+
 verifica('il paywall chiama i giocatori per nome', /function pwPersonalizza/.test(html) && /nomi\+', le sfide non finiscono/.test(html) && /\^G\[1-4\]\$/.test(html),
   'i nomi li abbiamo gia\' chiesti: un paywall generico spreca l\'unica personalizzazione che possediamo, e i segnaposto G1/G2 non sono nomi');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
@@ -315,11 +329,12 @@ verifica('niente immagini base64 nell\'HTML', !/data:image\/(png|jpe?g);base64/.
 verifica('la musica non si scarica all\'avvio', /id="bgMusic" loop preload="none"/.test(html),
   '7,6 MB scaricati a ogni apertura anche da chi non accende mai la musica');
 // Budget: 260 -> 285 KB il 18/08/2026 (modalita' tabellone), 285 -> 300 KB il
-// 20/08/2026 (prima schermata a freddo con le braci su canvas + notifiche).
+// 20/08/2026 (prima schermata a freddo con le braci su canvas + notifiche),
+// 300 -> 315 KB il 21/08/2026 (paywall ricostruito e penitenza di fine partita).
 // Sempre codice vero: niente immagini o font incorporati.
 // (+10 KB di codice, nessun asset inline). Il controllo resta: blocca la
 // crescita accidentale, non le feature decise.
-verifica('HTML sotto i 300 KB', html.length < 300 * 1024, 'ora e\' ' + Math.round(html.length / 1024) + ' KB');
+verifica('HTML sotto i 315 KB', html.length < 315 * 1024, 'ora e\' ' + Math.round(html.length / 1024) + ' KB');
 
 sezione('Sicurezza');
 const proxy = fs.readFileSync(path.join(BASE, 'functions/openai.js'), 'utf8');
