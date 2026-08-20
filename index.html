@@ -1757,6 +1757,10 @@ function ttsDBput(key, blob){
 // chiede la stessa frase mentre la prima e' in viaggio si mette in coda su
 // quella promessa.
 var _ttsInVolo = {};
+/* Velocita' del narratore (1.2 = 20% piu' veloce, deciso da Yves il 20/08).
+   Applicata in riproduzione, non in generazione: vale anche per le clip
+   gia' in cache e non costa una rigenerazione TTS. */
+var VOICE_RATE=1.2;
 async function cachedTTS(text, voice){
   var key = ttsKey(voice, text);
   if(_ttsMemCache[key]){ console.log('cachedTTS: HIT memoria'); return _ttsMemCache[key]; }
@@ -2382,7 +2386,7 @@ try{if(webAudioSource){webAudioSource.onended=null;webAudioSource.stop();webAudi
 try{if(currentAudio){currentAudio.pause();currentAudio=null;}}catch(e){}
 aiAudioPlaying=false;processAudioQueue();
 }
-},Math.ceil((audioBuffer.duration||30)*1000)+3000);}catch(e){}
+},Math.ceil(((audioBuffer.duration||30)/VOICE_RATE)*1000)+3000);}catch(e){}
 // Ferma eventuale source precedente
 if(webAudioSource){
 try{webAudioSource.stop();}catch(e){}
@@ -2390,6 +2394,7 @@ webAudioSource=null;
 }
 webAudioSource=ac.createBufferSource();
 webAudioSource.buffer=audioBuffer;
+try{webAudioSource.playbackRate.value=VOICE_RATE}catch(e){}
 // Connetti direttamente al voiceGainNode globale:
 // il volume e' gestito al livello del graph, non piu' per source.
 // Vantaggio: cambi di slider voce agiscono subito su tutti i TTS
@@ -2454,6 +2459,7 @@ conteTalkStart(window._conteText||'',null);conteFlapStart();
 var url=URL.createObjectURL(blob);
 currentAudio=new Audio(url);
 currentAudio.volume=1.0;  // Il gain node comanda
+try{currentAudio.playbackRate=VOICE_RATE;currentAudio.preservesPitch=true}catch(e){}
 
 // Tentativo connessione a voiceGainNode
 var ac=null;var mediaSource=null;
@@ -3302,6 +3308,7 @@ var blob=await callOpenAITTS(introText, narratorVoice);
 var url=URL.createObjectURL(blob);
 introAudio=new Audio(url);
 introAudio.volume=voiceVolumeLevel;
+try{introAudio.playbackRate=VOICE_RATE;introAudio.preservesPitch=true}catch(e){}
 introAudio.onended=function(){
 URL.revokeObjectURL(url);
 introAudio=null;
