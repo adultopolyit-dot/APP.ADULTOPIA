@@ -2,7 +2,7 @@
 // Prima qui non c'era nulla: la registrazione usava una data: URL, che la spec
 // vieta come script di un SW, quindi falliva in silenzio a ogni caricamento.
 // Risultato: zero offline e 300 KB di HTML riscaricati a ogni avvio.
-const VERSION = 'adultopia-v3';
+const VERSION = 'adultopia-v4';
 const SHELL = 'shell-' + VERSION;
 const MEDIA = 'media-' + VERSION;
 
@@ -88,5 +88,40 @@ self.addEventListener('fetch', (e) => {
       }
       return res;
     }).catch(() => hit))
+  );
+});
+
+// ---------- NOTIFICHE ----------
+// La push arriva senza testo (niente cifratura da gestire lato server): il
+// messaggio lo sceglie qui il service worker. Sono inviti, non promemoria
+// burocratici: uno vale l'altro, cambiano per non annoiare.
+const INVITI = [
+  { t: 'La serata vi aspetta', b: 'Tre lanci gratis sono pronti. Bastano dieci minuti.' },
+  { t: 'Chi tira per primo?', b: 'Il Conte ha già mescolato le carte.' },
+  { t: 'Stasera niente divano', b: "Un dado, una sfida, e la serata prende un'altra piega." },
+  { t: 'I vostri lanci si sono ricaricati', b: 'Aprite, tirate, vedete cosa succede.' }
+];
+
+self.addEventListener('push', (e) => {
+  const i = INVITI[Math.floor(Math.random() * INVITI.length)];
+  e.waitUntil(self.registration.showNotification(i.t, {
+    body: i.b,
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'adultopia-serata',      // una sola alla volta, non si accumulano
+    renotify: true,
+    data: { url: '/?utm_source=push&utm_medium=notifica' }
+  }));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cl) => {
+      // Se l'app e' gia' aperta si porta in primo piano invece di duplicarla.
+      for (const c of cl) { if ('focus' in c) return c.focus(); }
+      return self.clients.openWindow(url);
+    })
   );
 });

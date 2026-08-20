@@ -208,7 +208,7 @@ verifica('i barrati seguono la regola di Yves (+25%, +50% annuale)', /€6,49/.t
   'compare decisi il 19/08: mensile 6,49 (arrotondato) e lifetime +25%, annuale +50%');
 
 sezione('Modalità tabellone');
-verifica('si entra dall\'intro e dal setup', /intro-ghost" onclick="goHybrid\(\)"/.test(html) && (html.match(/onclick="goHybrid\(\)"/g) || []).length >= 2,
+verifica('si entra dall\'intro e dal setup', /intro-ghost[^"]*" onclick="goHybrid\(\)"/.test(html) && (html.match(/onclick="goHybrid\(\)"/g) || []).length >= 2,
   'chi ha la scatola non trovava il banco digitale: l\'accesso deve stare su entrambe le schermate iniziali');
 verifica('i dadi del tabellone contano nei lanci gratuiti', /function hybRoll\(\)\{[\s\S]{0,200}incrementTrialRoll\(\)/.test(html),
   'senza il contatore condiviso la modalità ibrida regalava lanci illimitati aggirando la prova');
@@ -225,6 +225,20 @@ verifica('il ritmo della voce lo genera il TTS, non un processing', /var VOICE_R
 const proxyTTS = fs.readFileSync(path.join(BASE, 'functions/openai.js'), 'utf8');
 verifica('ElevenLabs pronto nel proxy come interruttore', /TTS_PROVIDER === 'elevenlabs'/.test(proxyTTS) && /fallback OpenAI/.test(proxyTTS),
   'se OpenAI non basta si cambia provider con due env, senza toccare il client, e senza mai lasciare muto il narratore');
+
+sezione('Prima schermata e notifiche');
+verifica('la prima schermata dice il gioco a chi non ci conosce', /intro-hook/.test(html) && /Un dado\. Una sfida\./.test(html) && /niente registrazione/.test(html),
+  'chi arriva da un annuncio non sa cosa sia Adultopia: prima il gioco, poi l\'atmosfera');
+verifica('le braci si spengono quando non servono', /function fxFerma/.test(html) && /visibilitychange/.test(html) && /prefers-reduced-motion:reduce\)'\)\.matches/.test(html),
+  'un canvas che gira in sottofondo brucia batteria e ignora chi non vuole animazioni');
+verifica('le braci si adattano al telefono', /deviceMemory/.test(html) && /Math\.min\(window\.devicePixelRatio\|\|1,2\)/.test(html),
+  'senza tetto al pixel ratio e al numero di braci i telefoni modesti scattano');
+verifica('il permesso notifiche si chiede prima con parole nostre', /function pushProponi/.test(html) && /Notification\.permission!=='default'/.test(html) && /function pushRifiuta/.test(html),
+  'un no del browser e\' definitivo: prima si chiede in casa, il permesso vero solo a chi ha gia\' detto si\'');
+verifica('le notifiche hanno un mittente e un ritorno', /addEventListener\('push'/.test(sw) && /notificationclick/.test(sw) && /VAPID_PUB=/.test(html),
+  'una push senza gestore del click apre una scheda nuova ogni volta invece di riportare al gioco');
+verifica('l\'aptica ha piu\' di un livello', /function tap\(forza\)/.test(html) && /tap\('medio'\)/.test(html) && /tap\('forte'\)/.test(html),
+  'una vibrazione sola per tutto diventa fastidio: leggera dove si tocca spesso, piena solo alla vittoria');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
   'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
 verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),
@@ -285,10 +299,12 @@ verifica('niente immagini base64 nell\'HTML', !/data:image\/(png|jpe?g);base64/.
   'il logo inline pesava 91 KB, il 28% del file');
 verifica('la musica non si scarica all\'avvio', /id="bgMusic" loop preload="none"/.test(html),
   '7,6 MB scaricati a ogni apertura anche da chi non accende mai la musica');
-// Budget alzato da 260 a 285 KB il 18/08/2026 per la modalita' tabellone
+// Budget: 260 -> 285 KB il 18/08/2026 (modalita' tabellone), 285 -> 300 KB il
+// 20/08/2026 (prima schermata a freddo con le braci su canvas + notifiche).
+// Sempre codice vero: niente immagini o font incorporati.
 // (+10 KB di codice, nessun asset inline). Il controllo resta: blocca la
 // crescita accidentale, non le feature decise.
-verifica('HTML sotto i 285 KB', html.length < 285 * 1024, 'ora e\' ' + Math.round(html.length / 1024) + ' KB');
+verifica('HTML sotto i 300 KB', html.length < 300 * 1024, 'ora e\' ' + Math.round(html.length / 1024) + ' KB');
 
 sezione('Sicurezza');
 const proxy = fs.readFileSync(path.join(BASE, 'functions/openai.js'), 'utf8');
