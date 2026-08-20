@@ -46,6 +46,7 @@ y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
 /* Eventi verso Clarity: la coda c[a].q li tiene anche prima che il tag carichi. */
 function segnale(nome){try{window.clarity('event',nome)}catch(e){}}
 </script>
+<script src="assets/js/soundtouch.js" defer></script>
 <link rel="preload" href="assets/fonts/montserrat-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/fjalla-one.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -1761,6 +1762,32 @@ var _ttsInVolo = {};
    Applicata in riproduzione, non in generazione: vale anche per le clip
    gia' in cache e non costa una rigenerazione TTS. */
 var VOICE_RATE=1.2;
+/* Time-stretch senza cambio di tono (SoundTouch, WSOLA): riscrive la clip
+   al 20% piu' corta mantenendo la frequenza della voce. Sopra i 45 secondi
+   si rinuncia (troppo lavoro sul main thread) e si accetta il playbackRate. */
+function stretchBuffer(ac,buffer,tempo){
+var ST=window.SoundTouchLib;
+if(!ST||!ac||tempo===1||buffer.duration>45)return null;
+var sr=buffer.sampleRate,mono=buffer.numberOfChannels<2;
+/* La pipeline WSOLA trattiene una coda: senza imbottitura di silenzio in
+   ingresso l'ultima parola veniva mangiata (misurati 0,3s persi su 2s).
+   Si imbottisce, si stira, e si taglia l'uscita alla durata attesa. */
+var PAD=Math.ceil(0.8*sr);
+var attesi=Math.round(buffer.length/tempo);
+var padded=ac.createBuffer(mono?1:2,buffer.length+PAD,sr);
+padded.getChannelData(0).set(buffer.getChannelData(0));
+if(!mono)padded.getChannelData(1).set(buffer.getChannelData(1));
+var st=new ST.SoundTouch(sr);
+st.tempo=tempo;
+var filter=new ST.SimpleFilter(new ST.WebAudioBufferSource(padded),st);
+var BLOCK=4096,tmp=new Float32Array(BLOCK*2),pezzi=[],tot=0,f;
+while((f=filter.extract(tmp,BLOCK))>0&&tot<attesi+PAD){var c=new Float32Array(f*2);c.set(tmp.subarray(0,f*2));pezzi.push(c);tot+=f}
+if(tot<attesi*0.8)return null;
+var out=ac.createBuffer(mono?1:2,Math.min(tot,attesi),sr);
+var L=out.getChannelData(0),R=mono?null:out.getChannelData(1),pos=0,cap=out.length;
+for(var i=0;i<pezzi.length&&pos<cap;i++){var a=pezzi[i];for(var j=0,m=a.length/2;j<m&&pos<cap;j++){L[pos]=a[j*2];if(R)R[pos]=a[j*2+1];pos++}}
+return out;
+}
 async function cachedTTS(text, voice){
   var key = ttsKey(voice, text);
   if(_ttsMemCache[key]){ console.log('cachedTTS: HIT memoria'); return _ttsMemCache[key]; }
@@ -2377,6 +2404,8 @@ try{
 initAudioGraph();
 var audioBuffer=await ac.decodeAudioData(arrayBuffer);
 if(myGen!==speechGen)return;   // ultimo controllo prima di far suonare
+var stretched=false;
+try{var sb=stretchBuffer(ac,audioBuffer,VOICE_RATE);if(sb){audioBuffer=sb;stretched=true}}catch(e){}
 // Riarma il safety timeout sulla durata reale (+3s margine): non scatta piu'
 // durante una narrazione lunga legittima, quindi niente accavallamento.
 try{if(audioSafetyTimeout)clearTimeout(audioSafetyTimeout);
@@ -2386,7 +2415,7 @@ try{if(webAudioSource){webAudioSource.onended=null;webAudioSource.stop();webAudi
 try{if(currentAudio){currentAudio.pause();currentAudio=null;}}catch(e){}
 aiAudioPlaying=false;processAudioQueue();
 }
-},Math.ceil(((audioBuffer.duration||30)/VOICE_RATE)*1000)+3000);}catch(e){}
+},Math.ceil(((audioBuffer.duration||30)/(stretched?1:VOICE_RATE))*1000)+3000);}catch(e){}
 // Ferma eventuale source precedente
 if(webAudioSource){
 try{webAudioSource.stop();}catch(e){}
@@ -2394,7 +2423,7 @@ webAudioSource=null;
 }
 webAudioSource=ac.createBufferSource();
 webAudioSource.buffer=audioBuffer;
-try{webAudioSource.playbackRate.value=VOICE_RATE}catch(e){}
+try{webAudioSource.playbackRate.value=stretched?1:VOICE_RATE}catch(e){}
 // Connetti direttamente al voiceGainNode globale:
 // il volume e' gestito al livello del graph, non piu' per source.
 // Vantaggio: cambi di slider voce agiscono subito su tutti i TTS

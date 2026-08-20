@@ -220,8 +220,10 @@ verifica('toccare i vestiti non apre la cassa', /hyb-cl" onclick="event\.stopPro
   'la riga vestiti sta dentro la card giocatore, che al tocco apre la cassa');
 verifica('Clarity misura l\'app con gli eventi di retention', /clarity\.ms\/tag/.test(html) && /y57zsjyrb0/.test(html) && /segnale\('PrimoLancio'\)/.test(html) && /RitornoGiorno/.test(html) && /segnale\('PaywallVisto'\)/.test(html),
   'senza strumentazione i soldi in ads comprano traffico ma nessuna risposta su attivazione e ritorno');
-verifica('il narratore parla al 20% in piu\' su tutti i canali', /VOICE_RATE=1\.2/.test(html) && (html.match(/playbackRate(\.value)?=VOICE_RATE/g)||[]).length>=3,
-  'la velocita\' va applicata su Web Audio, fallback HTMLAudio e intro, o la voce cambia passo a meta\' serata');
+verifica('il narratore parla al 20% in piu\' senza cambiare tono', /VOICE_RATE=1\.2/.test(html) && /function stretchBuffer/.test(html) && /stretched\?1:VOICE_RATE/.test(html) && /assets\/js\/soundtouch\.js/.test(html),
+  'il playbackRate su Web Audio alzava il tono di tre semitoni: serve il time-stretch, col rate solo come ripiego');
+verifica('il service worker mette in cache SoundTouch', /assets\/js\/soundtouch\.js/.test(sw),
+  'offline la voce sarebbe tornata acuta senza la libreria');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
   'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
 verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),
