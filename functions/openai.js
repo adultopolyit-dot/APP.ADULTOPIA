@@ -63,6 +63,38 @@ exports.handler = async (event, context) => {
   try {
     const body = JSON.parse(event.body);
     const endpoint = body.endpoint || 'chat/completions';
+
+    // Provider alternativo per la sola voce: ElevenLabs, se attivato via env.
+    // TTS_PROVIDER=elevenlabs + ELEVEN_API_KEY (+ ELEVEN_VOICE_MAP JSON che
+    // mappa onyx/echo/nova/shimmer a voice_id, o ELEVEN_VOICE_ID unico).
+    // La risposta ha la stessa forma { audio: base64 }: il client non cambia.
+    // Quando si attiva va alzata TTS_CACHE_VERSION nell'app, o le clip
+    // OpenAI in cache si mescolano alle nuove.
+    if (endpoint === 'audio/speech' && process.env.TTS_PROVIDER === 'elevenlabs' && process.env.ELEVEN_API_KEY) {
+      let voiceId = process.env.ELEVEN_VOICE_ID || '';
+      try {
+        const mappa = JSON.parse(process.env.ELEVEN_VOICE_MAP || '{}');
+        if (mappa[body.voice]) voiceId = mappa[body.voice];
+      } catch (e) { /* mappa malformata: resta il voice_id unico */ }
+      if (voiceId) {
+        const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId + '?output_format=mp3_44100_128', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'xi-api-key': process.env.ELEVEN_API_KEY },
+          body: JSON.stringify({
+            text: body.input,
+            model_id: process.env.ELEVEN_MODEL || 'eleven_flash_v2_5',
+            language_code: 'it'
+          })
+        });
+        if (r.ok) {
+          const buf = Buffer.from(await r.arrayBuffer());
+          return { statusCode: 200, headers, body: JSON.stringify({ audio: buf.toString('base64') }) };
+        }
+        // ElevenLabs giu' o crediti finiti: si continua con OpenAI qui sotto,
+        // il narratore non deve mai restare muto.
+        console.warn('ElevenLabs KO (' + r.status + '), fallback OpenAI');
+      }
+    }
     
     // Determina l'URL OpenAI
     let url = `https://api.openai.com/v1/${endpoint}`;

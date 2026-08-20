@@ -1615,7 +1615,7 @@ async function callOpenAI(endpoint, body) {
 // pronunce). Fallback automatico a tts-1 se il modello non fosse disponibile;
 // MAI su errori di quota (riprovare sarebbe inutile e costoso).
 var TTS_MODEL = 'gpt-4o-mini-tts';
-var TTS_INSTRUCTIONS = 'Parla in italiano perfetto, con dizione impeccabile: ogni parola pronunciata in modo chiaro, mai storpiata. Voce calda, avvolgente e seducente: sei il maestro di cerimonie di un gioco intimo per coppie. Ritmo fluido e naturale, leggermente brioso, pause brevi ed eleganti. Tono complice, con un sorriso nella voce. Mai robotico, mai monotono, mai cantilenante.';
+var TTS_INSTRUCTIONS = 'Parla in italiano perfetto, con dizione impeccabile: ogni parola pronunciata in modo chiaro, mai storpiata. Voce calda, avvolgente e seducente: sei il maestro di cerimonie di un gioco intimo per coppie. Ritmo svelto e brillante, circa il venti per cento piu veloce di un parlato rilassato, senza mai mangiare le parole. Pause brevi ed eleganti. Tono complice, con un sorriso nella voce. Mai robotico, mai monotono, mai cantilenante.';
 
 function ttsPayload(text, voice, model) {
   var p = { endpoint: 'audio/speech', model: model, voice: voice || narratorVoice, input: text };
@@ -1693,7 +1693,7 @@ var _ttsMemCache = {};                 // key -> Blob (sessione corrente)
 var _ttsDB = null;                     // handle IndexedDB
 var TTS_DB_NAME = 'adultopia-tts';
 var TTS_STORE = 'clips';
-var TTS_CACHE_VERSION = 'v3';          // v3: gpt-4o-mini-tts voce seducente          // bump se cambia modello/pipeline pulizia
+var TTS_CACHE_VERSION = 'v4';          // v4: ritmo svelto nelle instructions (20/08). Bump anche quando cambia il provider (es. ElevenLabs).
 
 function ttsKey(voice, text){ return TTS_CACHE_VERSION + '|' + (voice || narratorVoice) + '|' + text; }
 
@@ -1761,7 +1761,9 @@ var _ttsInVolo = {};
 /* Velocita' del narratore (1.2 = 20% piu' veloce, deciso da Yves il 20/08).
    Applicata in riproduzione, non in generazione: vale anche per le clip
    gia' in cache e non costa una rigenerazione TTS. */
-var VOICE_RATE=1.2;
+var VOICE_RATE=1;  /* 1 = nessun processing. Il ritmo svelto arriva dal TTS
+   (instructions): il time-stretch WSOLA qui sotto rendeva la voce metallica
+   e resta solo come attrezzo, spento. */
 /* Time-stretch senza cambio di tono (SoundTouch, WSOLA): riscrive la clip
    al 20% piu' corta mantenendo la frequenza della voce. Sopra i 45 secondi
    si rinuncia (troppo lavoro sul main thread) e si accetta il playbackRate. */

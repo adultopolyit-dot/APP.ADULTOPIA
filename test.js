@@ -220,10 +220,11 @@ verifica('toccare i vestiti non apre la cassa', /hyb-cl" onclick="event\.stopPro
   'la riga vestiti sta dentro la card giocatore, che al tocco apre la cassa');
 verifica('Clarity misura l\'app con gli eventi di retention', /clarity\.ms\/tag/.test(html) && /y57zsjyrb0/.test(html) && /segnale\('PrimoLancio'\)/.test(html) && /RitornoGiorno/.test(html) && /segnale\('PaywallVisto'\)/.test(html),
   'senza strumentazione i soldi in ads comprano traffico ma nessuna risposta su attivazione e ritorno');
-verifica('il narratore parla al 20% in piu\' senza cambiare tono', /VOICE_RATE=1\.2/.test(html) && /function stretchBuffer/.test(html) && /stretched\?1:VOICE_RATE/.test(html) && /assets\/js\/soundtouch\.js/.test(html),
-  'il playbackRate su Web Audio alzava il tono di tre semitoni: serve il time-stretch, col rate solo come ripiego');
-verifica('il service worker mette in cache SoundTouch', /assets\/js\/soundtouch\.js/.test(sw),
-  'offline la voce sarebbe tornata acuta senza la libreria');
+verifica('il ritmo della voce lo genera il TTS, non un processing', /var VOICE_RATE=1;/.test(html) && /venti per cento piu veloce/.test(html) && /TTS_CACHE_VERSION = 'v4'/.test(html),
+  'lo stretch WSOLA rendeva la voce metallica: la velocita\' va chiesta nelle instructions e la cache vecchia buttata');
+const proxyTTS = fs.readFileSync(path.join(BASE, 'functions/openai.js'), 'utf8');
+verifica('ElevenLabs pronto nel proxy come interruttore', /TTS_PROVIDER === 'elevenlabs'/.test(proxyTTS) && /fallback OpenAI/.test(proxyTTS),
+  'se OpenAI non basta si cambia provider con due env, senza toccare il client, e senza mai lasciare muto il narratore');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
   'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
 verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),
