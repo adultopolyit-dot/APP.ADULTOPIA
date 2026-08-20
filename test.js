@@ -200,11 +200,14 @@ verifica('i font sono precaricati e senza swap', /rel="preload"[^>]*montserrat-v
 verifica('il service worker mette in cache i font', /assets\/fonts\/fjalla-one\.woff2/.test(sw) && /assets\/fonts\/montserrat-var\.woff2/.test(sw),
   'offline i font sparivano e l\'app cambiava faccia');
 // Fonte di verita' dei prezzi: site/src/lib/products.ts (listino 19/08/2026).
-verifica('il paywall mostra il listino vero', /€4,99<span>\/mese/.test(html) && /€19,99<span>\/anno/.test(html) && /€69,99<span> una volta/.test(html),
+// Comprende markup e codice del paywall: il piano a vita non sta in vetrina,
+// lo inietta pwTuttiIPiani(), ma il suo prezzo deve restare quello vero.
+const zonaPaywall = html.substring(html.indexOf('id="adultopia-paywall"'), html.indexOf('END PAYWALL + TRIAL SYSTEM'));
+verifica('il paywall mostra il listino vero', /4,99&euro;/.test(zonaPaywall) && /19,99&euro;/.test(zonaPaywall) && /69,99&euro;/.test(zonaPaywall),
   'l\'app prometteva prezzi diversi da quelli che il sito incassa');
 verifica('niente prezzi del listino vecchio nel paywall', !/€199\.99|€699\.99|€1\.99|€19\.99|€69\.99|13,99|48,99|59,88/.test(html),
   'i valori del listino precedente riapparivano e contraddicevano il sito');
-verifica('i barrati seguono la regola di Yves (+25%, +50% annuale)', /€6,49/.test(html) && /€29,99/.test(html) && /€87,49/.test(html),
+verifica('i barrati seguono la regola di Yves (+25%, +50% annuale)', /6,49&euro;/.test(zonaPaywall) && /29,99&euro;/.test(zonaPaywall) && /87,49&euro;/.test(zonaPaywall),
   'compare decisi il 19/08: mensile 6,49 (arrotondato) e lifetime +25%, annuale +50%');
 
 sezione('Modalità tabellone');
@@ -239,6 +242,18 @@ verifica('le notifiche hanno un mittente e un ritorno', /addEventListener\('push
   'una push senza gestore del click apre una scheda nuova ogni volta invece di riportare al gioco');
 verifica('l\'aptica ha piu\' di un livello', /function tap\(forza\)/.test(html) && /tap\('medio'\)/.test(html) && /tap\('forte'\)/.test(html),
   'una vibrazione sola per tutto diventa fastidio: leggera dove si tocca spesso, piena solo alla vittoria');
+verifica('il paywall mostra due piani, non tre', (zonaPaywall.match(/class="pw-piano/g)||[]).length===2 && /function pwTuttiIPiani/.test(html),
+  'tre piani in vetrina creano indecisione: il terzo si mostra a chi lo chiede');
+verifica('l\'annuale parte gia\' scelto', /pwPianoScelto='annuale'/.test(html) && /class="pw-piano sel" data-piano="annuale"/.test(zonaPaywall),
+  'senza un piano preselezionato la scelta ricade sull\'utente e la conversione cala');
+verifica('c\'e\' una sola azione grande, con la rassicurazione sotto', /class="pw-cta" id="pwCta"/.test(zonaPaywall) && /min-height:60px/.test(html) && /Nessun impegno, disdici quando vuoi/.test(zonaPaywall),
+  'tre card cliccabili non sono una CTA: serve un bottone solo, alto, e la riga che toglie la paura dell\'impegno');
+verifica('la X propone il mensile invece di chiudere e basta', /function paywallUscita/.test(html) && /onclick="paywallUscita\(\)"/.test(zonaPaywall) && /Continuo coi 3 lanci gratis/.test(zonaPaywall),
+  'chi chiude un paywall annuale spesso direbbe si\' al mensile: chiudere e basta butta via quella risposta');
+verifica('il paywall ha un\'immagine eroe, non solo testo', /class="pw-hero" src="assets\/pw-hero\.webp"/.test(zonaPaywall) && /assets\/pw-hero\.webp/.test(sw),
+  'sui paywall studiati l\'immagine grande del prodotto batte il muro di testo, e offline deve esserci comunque');
+verifica('il paywall chiama i giocatori per nome', /function pwPersonalizza/.test(html) && /nomi\+', le sfide non finiscono/.test(html) && /\^G\[1-4\]\$/.test(html),
+  'i nomi li abbiamo gia\' chiesti: un paywall generico spreca l\'unica personalizzazione che possediamo, e i segnaposto G1/G2 non sono nomi');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
   'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
 verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),

@@ -2,7 +2,7 @@
 // Prima qui non c'era nulla: la registrazione usava una data: URL, che la spec
 // vieta come script di un SW, quindi falliva in silenzio a ogni caricamento.
 // Risultato: zero offline e 300 KB di HTML riscaricati a ogni avvio.
-const VERSION = 'adultopia-v4';
+const VERSION = 'adultopia-v5';
 const SHELL = 'shell-' + VERSION;
 const MEDIA = 'media-' + VERSION;
 
@@ -16,6 +16,7 @@ const SHELL_URLS = [
   '/assets/mascot/conte-poses3.png',
   '/assets/mascot/conte-talk.png',
   '/assets/js/soundtouch.js',
+  '/assets/pw-hero.webp',
   '/assets/fonts/fjalla-one.woff2',
   '/assets/fonts/montserrat-var.woff2'
 ];

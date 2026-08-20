@@ -337,6 +337,64 @@ color:var(--cream)
 .sugg-item.sel{border-color:#22c55e;background:linear-gradient(145deg,#0a1a0a,#051005)}
 .hist-item{background:var(--velvet);border-radius:10px;padding:14px;margin:8px 0;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(185,28,28,0.2)}
 
+/* ========== PAYWALL ==========
+   Impianto dai test di chi ne ha costruiti migliaia: poche righe (la gente non
+   legge), due piani e non tre (il terzo genera solo indecisione), l'annuale
+   gia' scelto, UNA azione grande in fondo, e la rassicurazione sotto il
+   bottone. La X non chiude: propone il mensile. */
+.pw-hero{display:block;width:calc(100% + 30px);max-width:none;margin:-15px -15px 12px;border-radius:14px;
+  height:auto;box-shadow:0 18px 44px -14px rgba(0,0,0,.85)}
+.pw-sub{font-size:.82rem;line-height:1.45;color:rgba(245,245,220,.72);margin:0}
+.pw-punti{max-width:320px;margin:14px auto 10px;text-align:left;display:flex;flex-direction:column;gap:7px}
+.pw-punti div{display:flex;gap:9px;align-items:flex-start;font-size:.8rem;line-height:1.4;color:rgba(245,245,220,.9)}
+.pw-punti span{color:var(--gold);flex:0 0 auto;font-weight:700}
+.pw-proof{font-size:.72rem;color:rgba(245,245,220,.6);letter-spacing:.4px;margin:0 0 14px}
+.pw-piani{display:flex;gap:9px;max-width:340px;margin:0 auto 14px}
+.pw-piano{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:15px 8px 13px;border-radius:14px;cursor:pointer;font-family:'Montserrat',sans-serif;
+  background:linear-gradient(165deg,#171112,var(--velvet));border:1px solid rgba(255,255,255,.09);
+  transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.pw-piano.sel{border-color:var(--ruby3);box-shadow:0 0 0 1px var(--ruby3),0 14px 34px -12px rgba(185,28,28,.6);
+  background:linear-gradient(165deg,#240b0e,#0d0405)}
+.pw-piano:active{transform:scale(.98)}
+.pw-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#e8c34c,#b8912a);
+  color:#1a1206;font-size:.56rem;font-weight:800;letter-spacing:.6px;padding:3px 9px;border-radius:99px;text-transform:uppercase;white-space:nowrap}
+.pw-nome{font-size:.68rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(245,245,220,.7)}
+.pw-prezzo{font-family:'Fjalla One','Montserrat',sans-serif;font-size:1.4rem;color:var(--cream2);line-height:1.1}
+.pw-prezzo small{font-size:.6rem;color:rgba(245,245,220,.55);font-family:'Montserrat',sans-serif}
+.pw-nota{font-size:.6rem;color:rgba(245,245,220,.55);text-align:center;line-height:1.3}
+.pw-nota s{opacity:.7}
+/* Il bottone e' alto davvero: sui paywall che vincono e' l'elemento piu' grande. */
+.pw-cta{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:340px;margin:0 auto;
+  min-height:60px;border:1px solid var(--ruby3);border-radius:16px;cursor:pointer;
+  background:linear-gradient(180deg,#e23434 0%,var(--ruby) 55%,#8f1414 100%);color:var(--cream2);
+  font-family:'Fjalla One','Montserrat',sans-serif;font-size:1.15rem;letter-spacing:1.5px;text-transform:uppercase;
+  box-shadow:0 16px 38px -10px rgba(185,28,28,.6),inset 0 1px 0 rgba(255,255,255,.25)}
+.pw-cta:active{transform:translateY(2px)}
+.pw-chev{font-size:1.5rem;line-height:1;margin-top:-2px}
+.pw-rassicura{font-size:.7rem;color:rgba(245,245,220,.58);margin:9px 0 0}
+.pw-minori{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin-top:14px}
+.pw-minori button{background:none;border:none;color:rgba(245,245,220,.55);font-size:.7rem;cursor:pointer;
+  font-family:'Montserrat',sans-serif;text-decoration:underline;text-underline-offset:2px;padding:2px}
+.pw-minori button:hover{color:var(--gold)}
+.pw-minori span{color:rgba(245,245,220,.25);font-size:.7rem}
+.pw-sblocco{display:none;margin-top:12px}
+.pw-sblocco.on{display:block}
+.pw-scatola{font-size:.66rem;color:rgba(245,245,220,.5);margin-top:12px}
+.pw-scatola a{color:var(--gold);text-decoration:none}
+.pw-uscita{position:absolute;inset:0;background:rgba(5,3,3,.94);backdrop-filter:blur(6px);z-index:5;
+  display:none;align-items:flex-end;justify-content:center;padding:16px}
+.pw-uscita.on{display:flex}
+.pw-uscita-c{width:100%;max-width:360px;background:linear-gradient(165deg,#1b1213,var(--velvet));
+  border:1px solid rgba(212,175,55,.28);border-radius:20px;padding:22px 18px 18px;text-align:center;
+  box-shadow:0 -20px 60px rgba(0,0,0,.7);animation:pushSu .42s cubic-bezier(.16,1,.3,1) both}
+.pw-uscita-c h3{font-family:'Fjalla One','Montserrat',sans-serif;font-weight:400;font-size:1.15rem;
+  text-transform:uppercase;letter-spacing:1px;color:var(--cream2);margin-bottom:6px}
+.pw-uscita-c p{font-size:.78rem;color:rgba(245,245,220,.7);margin-bottom:16px;line-height:1.45}
+.pw-uscita-no{display:block;width:100%;margin-top:10px;background:none;border:none;
+  color:rgba(245,245,220,.5);font-size:.76rem;cursor:pointer;font-family:'Montserrat',sans-serif;
+  text-decoration:underline;text-underline-offset:2px;padding:8px}
+@media (prefers-reduced-motion:reduce){.pw-uscita-c{animation:none}}
 /* ========== PAYWALL STYLES - ADULTOPIA BRAND ========== */
 .paywall-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--velvet);display:flex;justify-content:center;align-items:center;z-index:99999;font-family:'Montserrat',sans-serif;padding-top:env(safe-area-inset-top,0px)}
 .paywall-container{position:relative;max-width:400px;width:92%;padding:15px;text-align:center;max-height:calc(100vh - env(safe-area-inset-top,0px) - 20px);overflow-y:auto}
@@ -585,56 +643,69 @@ window.OPENAI_API_KEY='NETLIFY_FUNCTIONS';
 <!-- ========== PAYWALL ========== -->
 <div id="adultopia-paywall" class="paywall-overlay" style="display:none">
 <div class="paywall-container">
-<button class="paywall-close" onclick="paywallDismiss()" aria-label="Chiudi e torna al tavolo">&times;</button>
+<button class="paywall-close" onclick="paywallUscita()" aria-label="Chiudi e torna al tavolo">&times;</button>
+
 <div class="paywall-header">
-<div class="paywall-conte"></div>
-<h2 style="color:var(--cream);font-size:1.15rem;margin:0 0 5px 0;font-weight:700;line-height:1.2">Riscoprite l'intimità<br><span style="color:var(--ruby)">giocando insieme</span></h2>
-<p class="paywall-subtitle" style="font-size:0.8rem;opacity:0.7;margin:0">Oltre 10.000 coppie hanno già riacceso la passione</p>
+<img class="pw-hero" src="assets/pw-hero.webp" alt="La serata non finisce qui" width="900" height="633" decoding="async">
+<p class="pw-sub" id="pwSub">Sfide sempre nuove, lette ad alta voce dal narratore. Stasera e tutte le prossime.</p>
 </div>
-<div class="paywall-stack" style="text-align:left;max-width:320px;margin:0 auto 10px;font-size:0.72rem;color:var(--cream);opacity:0.92;line-height:1.55">
-<div>✓ Narratore AI, 4 voci italiane</div>
-<div>✓ Sfide infinite, mai due serate uguali</div>
-<div>✓ Espansioni a tema (Soft+ inclusa)</div>
-<div>✓ Modalità companion della scatola</div>
-<div>✓ Due dispositivi, il tuo e il suo</div>
+
+<div class="pw-punti">
+<div><span>&#10003;</span>Narratore con voce AI, quattro voci italiane</div>
+<div><span>&#10003;</span>Sfide generate coi vostri nomi, mai due uguali</div>
+<div><span>&#10003;</span>Lo stesso codice sul tuo telefono e sul suo</div>
 </div>
-<div class="paywall-plans">
-<div class="plan-card" onclick="window.open('https://adultopia.it/products/adultopia-app-mensile','_blank')">
-<div class="plan-icon">💎</div>
-<div class="plan-name">MENSILE</div>
-<div style="font-size:0.62rem;text-decoration:line-through;opacity:0.5;color:var(--cream);margin-bottom:1px">€6,49</div>
-<div class="plan-price">€4,99<span>/mese</span></div>
+
+<p class="pw-proof">&#9733;&#9733;&#9733;&#9733;&#9733; &nbsp;Oltre 12.000 coppie hanno scelto Adultopia</p>
+
+<div class="pw-piani" id="pwPiani">
+<button class="pw-piano sel" data-piano="annuale" onclick="pwScegli('annuale')">
+<span class="pw-tag">Pi&ugrave; scelto</span>
+<span class="pw-nome">Annuale</span>
+<span class="pw-prezzo">19,99&euro;<small>/anno</small></span>
+<span class="pw-nota">1,67&euro; al mese &middot; <s>29,99&euro;</s></span>
+</button>
+<button class="pw-piano" data-piano="mensile" onclick="pwScegli('mensile')">
+<span class="pw-nome">Mensile</span>
+<span class="pw-prezzo">4,99&euro;<small>/mese</small></span>
+<span class="pw-nota"><s>6,49&euro;</s> &middot; come un caff&egrave;</span>
+</button>
 </div>
-<div class="plan-card popular" onclick="window.open('https://adultopia.it/products/adultopia-app-annuale','_blank')">
-<div class="plan-badge">POPOLARE</div>
-<div class="plan-icon">👑</div>
-<div class="plan-name">ANNUALE</div>
-<div style="font-size:0.62rem;text-decoration:line-through;opacity:0.5;color:var(--cream);margin-bottom:1px">€29,99</div>
-<div class="plan-price">€19,99<span>/anno</span></div>
-<div class="plan-savings">1,67€ al mese</div>
+
+<button class="pw-cta" id="pwCta" onclick="pwVai()">Continua <span class="pw-chev">&rsaquo;</span></button>
+<p class="pw-rassicura">Nessun impegno, disdici quando vuoi</p>
+
+<div class="pw-minori">
+<button onclick="pwTuttiIPiani()">Vedi tutti i piani</button>
+<span>&middot;</span>
+<button onclick="pwApriSblocco()">Ho gi&agrave; acquistato</button>
+<span>&middot;</span>
+<button onclick="paywallShareUnlock()">Passate parola, +3 lanci</button>
 </div>
-<div class="plan-card" onclick="window.open('https://adultopia.it/products/adultopia-app-lifetime','_blank')">
-<div class="plan-icon">🏆</div>
-<div class="plan-name">LIFETIME</div>
-<div style="font-size:0.62rem;text-decoration:line-through;opacity:0.5;color:var(--cream);margin-bottom:1px">€87,49</div>
-<div class="plan-price">€69,99<span> una volta</span></div>
-<div class="plan-savings">Per sempre</div>
-</div>
-</div>
-<div style="font-size:0.7rem;color:var(--cream);opacity:0.82;margin:2px 0 8px;text-align:center">🛡️ 3 serate di prova. Se non si accende niente fra voi due, ti rimborsiamo.</div>
-<div class="paywall-divider"><span>Non stasera?</span></div>
-<button class="paywall-share-btn" onclick="paywallShareUnlock()">Passate parola, +3 lanci per stasera</button>
-<div class="paywall-divider"><span>Avete già acquistato?</span></div>
+
+<div id="pwSblocco" class="pw-sblocco">
 <div class="paywall-code-input">
 <input type="email" id="paywall-email" placeholder="email dell'acquisto" autocomplete="email" inputmode="email" spellcheck="false">
 <button id="paywall-email-btn" onclick="paywallVerifyEmail()">SBLOCCA</button>
 </div>
 <div class="paywall-code-input" style="margin-top:6px">
-<input type="text" id="paywall-code" placeholder="oppure codice AP-1234-5678" maxlength="25" autocomplete="off">
+<input type="text" id="paywall-code" placeholder="oppure codice ADULT-M-XXXXXXXX" maxlength="25" autocomplete="off">
 <button onclick="paywallActivateCode()">ATTIVA</button>
 </div>
+</div>
 <div id="paywall-message" class="paywall-message"></div>
-<div style="font-size:0.68rem;opacity:0.6;margin-top:10px;text-align:center;color:var(--cream)">Vuoi la versione vera da regalare? <a href="https://www.adultopia.it/products/adultopia?utm_source=app_paywall&utm_medium=reverse_funnel&utm_campaign=app_to_box" target="_blank" style="color:var(--gold);text-decoration:none">Il gioco da tavolo</a></div>
+
+<p class="pw-scatola">Volete la scatola vera da regalare? <a href="https://www.adultopia.it/products/adultopia?utm_source=app_paywall&utm_medium=reverse_funnel&utm_campaign=app_to_box" target="_blank">Il gioco da tavolo</a></p>
+</div>
+
+<!-- Chi chiude non trova una porta sbattuta ma un'alternativa piu' leggera. -->
+<div id="pwUscita" class="pw-uscita">
+<div class="pw-uscita-c">
+<h3>Non ve la sentite per un anno?</h3>
+<p>Si pu&ograve; fare mese per mese, e si disdice quando volete.</p>
+<button class="pw-cta" onclick="pwScegli('mensile');pwVai()">Mensile a 4,99&euro; <span class="pw-chev">&rsaquo;</span></button>
+<button class="pw-uscita-no" onclick="paywallDismiss()">Continuo coi 3 lanci gratis</button>
+</div>
 </div>
 </div>
 
@@ -1136,6 +1207,7 @@ msgDiv.className='paywall-message '+type;
 
 function paywallShow(){
 try{segnale('PaywallVisto')}catch(e){}
+try{pwPersonalizza()}catch(e){}
 var pw=document.getElementById('adultopia-paywall');
 var app=document.querySelector('.app');
 if(pw)pw.style.display='flex';
@@ -1154,8 +1226,77 @@ if(app)app.classList.remove('locked');
 // salvata, impostazioni restano raggiungibili). I dadi restano fermi finche'
 // non si sblocca, quindi l'invito ritorna da solo al primo tiro.
 function paywallDismiss(){
+var u=document.getElementById('pwUscita');
+if(u)u.classList.remove('on');
 paywallHide();
 showTrialBanner();
+}
+
+// ---------- Scelta del piano, azione unica, uscita con offerta ----------
+var PW_LINK={
+annuale:'https://adultopia.it/app/annuale?utm_source=app&utm_medium=paywall&utm_campaign=piano_annuale',
+mensile:'https://adultopia.it/app/mensile?utm_source=app&utm_medium=paywall&utm_campaign=piano_mensile',
+lifetime:'https://adultopia.it/app/lifetime?utm_source=app&utm_medium=paywall&utm_campaign=piano_lifetime'
+};
+var pwPianoScelto='annuale';   // l'annuale parte selezionato: e' quello che regge di piu' nel tempo
+/* I nomi li abbiamo gia' chiesti per il gioco: un paywall che dice "la serata
+   di Marco e Giulia" parla a loro, uno generico parla a nessuno. Se i nomi non
+   ci sono (partita non ancora iniziata) resta il titolo neutro. */
+function pwNomiInGioco(){
+var fonte=null;
+try{if(typeof G==='object'&&G&&Array.isArray(G.ps)&&G.ps.length)fonte=G.ps.map(function(p){return p&&p.name})}catch(e){}
+if(!fonte){try{if(typeof H==='object'&&H&&Array.isArray(H.ps)&&H.ps.length)fonte=H.ps.map(function(p){return p&&p.name})}catch(e){}}
+if(!fonte)return null;
+var n=fonte.filter(function(x){return typeof x==='string'&&x.trim()&&!/^G[1-4]$/.test(x.trim())})
+          .map(function(x){return x.trim().substring(0,14)});
+if(n.length<2)return null;
+if(n.length===2)return n[0]+' e '+n[1];
+return n.slice(0,-1).join(', ')+' e '+n[n.length-1];
+}
+function pwPersonalizza(){
+var nomi=pwNomiInGioco();
+if(!nomi)return;
+var sub=document.getElementById('pwSub');
+if(sub)sub.textContent=nomi+', le sfide non finiscono: ogni sera nuove, lette ad alta voce.';
+}
+function pwScegli(piano){
+if(!PW_LINK[piano])return;
+pwPianoScelto=piano;
+var c=document.querySelectorAll('#pwPiani .pw-piano');
+for(var i=0;i<c.length;i++){
+c[i].classList.toggle('sel',c[i].getAttribute('data-piano')===piano);
+}
+try{tap('leggero')}catch(e){}
+}
+function pwVai(){
+try{tap('medio')}catch(e){}
+try{segnale('PaywallCTA_'+pwPianoScelto)}catch(e){}
+window.open(PW_LINK[pwPianoScelto],'_blank');
+}
+function pwTuttiIPiani(){
+/* Il terzo piano non sta in vetrina ma non e' nascosto: chi lo cerca lo trova. */
+var g=document.getElementById('pwPiani');
+if(!g||document.querySelector('.pw-piano[data-piano="lifetime"]'))return;
+var b=document.createElement('button');
+b.className='pw-piano';b.setAttribute('data-piano','lifetime');
+b.onclick=function(){pwScegli('lifetime')};
+b.innerHTML='<span class="pw-nome">A vita</span><span class="pw-prezzo">69,99&euro;<small> una volta</small></span><span class="pw-nota">Pagate una volta &middot; <s>87,49&euro;</s></span>';
+g.appendChild(b);
+g.style.flexWrap='wrap';
+}
+function pwApriSblocco(){
+var el=document.getElementById('pwSblocco');
+if(el)el.classList.add('on');
+var i=document.getElementById('paywall-email');
+if(i)i.focus();
+}
+function paywallUscita(){
+/* Prima di lasciar andare: il mensile costa un quarto e toglie l'impegno
+   dell'anno. Chi rifiuta anche questo torna ai lanci gratis, senza attriti. */
+var u=document.getElementById('pwUscita');
+if(!u)return paywallDismiss();
+try{segnale('PaywallUscita')}catch(e){}
+u.classList.add('on');
 }
 
 // Auto-format codice
@@ -1496,7 +1637,7 @@ if(section)section.innerHTML='<div class="unlocked-badge" style="display:block">
 <p style="font-size:0.85rem;color:rgba(245,245,220,0.7);margin-bottom:12px;text-align:center">Cosa vuoi fare?</p>
 <div class="fs"><input type="text" id="customRule" placeholder="Scrivi la tua regola..."></div>
 <button class="mb p" onclick="saveRule()" style="margin-top:8px">✅ SALVA REGOLA</button>
-<div style="text-align:center;margin:12px 0;color:rgba(245,245,220,0.4)">— oppure —</div>
+<div style="text-align:center;margin:12px 0;color:rgba(245,245,220,0.4)">oppure</div>
 <button class="mb o" onclick="getAISuggR()" id="aiSuggRBtn">🤖 CHIEDI SUGGERIMENTI AI</button>
 <div id="suggListR" class="sugg-box" style="display:none"></div>
 <div id="suggLoadingR" style="display:none;text-align:center;padding:15px;color:var(--gold)">⏳ Genero suggerimenti...</div>
