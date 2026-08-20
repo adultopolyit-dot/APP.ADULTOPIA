@@ -37,6 +37,15 @@
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
+<script type="text/javascript">
+(function(c,l,a,r,i,t,y){
+c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "y57zsjyrb0");
+/* Eventi verso Clarity: la coda c[a].q li tiene anche prima che il tag carichi. */
+function segnale(nome){try{window.clarity('event',nome)}catch(e){}}
+</script>
 <link rel="preload" href="assets/fonts/montserrat-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/fjalla-one.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -746,6 +755,7 @@ var s=streakGet(),today=trialTodayKey();
 if(s.last===today){streakRender(false);return s}
 if(s.last){var d=streakDayDiff(s.last,today);s.n=(d===1)?s.n+1:1}else{s.n=1}
 s.last=today;
+if(s.n>=2)try{segnale('RitornoGiorno'+Math.min(s.n,7))}catch(e){}
 if(s.n>s.best)s.best=s.n;
 try{localStorage.setItem(STREAK_KEY,JSON.stringify(s))}catch(e){}
 streakRender(s.n>1);
@@ -945,6 +955,10 @@ if(used>=max){paywallShow();return false}
 trialRollsUsed=used+1;
 trialSetUsed(trialRollsUsed);
 updateTrialBanner();
+/* Retention: il primo lancio di sempre e' l'attivazione, l'ultimo del giorno
+   dice che la prova e' stata consumata intera. */
+try{if(!localStorage.getItem('adultopia_primo_lancio')){localStorage.setItem('adultopia_primo_lancio','1');segnale('PrimoLancio')}}catch(e){}
+if(trialRollsUsed>=max)try{segnale('TrialFinito')}catch(e){}
 // Ultimo lancio consumato: la serata finisce comunque (tiro, sfida, timer),
 // l'invito arriva dopo, non spegne la luce a meta' azione.
 if(trialRollsUsed>=max){setTimeout(function(){if(!paywallUnlocked)paywallShow()},7000)}
@@ -1080,6 +1094,7 @@ msgDiv.className='paywall-message '+type;
 }
 
 function paywallShow(){
+try{segnale('PaywallVisto')}catch(e){}
 var pw=document.getElementById('adultopia-paywall');
 var app=document.querySelector('.app');
 if(pw)pw.style.display='flex';

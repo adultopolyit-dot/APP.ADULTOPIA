@@ -218,6 +218,8 @@ verifica('le serate salvate senza vestiti vengono vestite al caricamento', /if\(
   'un salvataggio della versione precedente faceva crollare il render dei vestiti');
 verifica('toccare i vestiti non apre la cassa', /hyb-cl" onclick="event\.stopPropagation\(\);hybVestiti\(/.test(html),
   'la riga vestiti sta dentro la card giocatore, che al tocco apre la cassa');
+verifica('Clarity misura l\'app con gli eventi di retention', /clarity\.ms\/tag/.test(html) && /y57zsjyrb0/.test(html) && /segnale\('PrimoLancio'\)/.test(html) && /RitornoGiorno/.test(html) && /segnale\('PaywallVisto'\)/.test(html),
+  'senza strumentazione i soldi in ads comprano traffico ma nessuna risposta su attivazione e ritorno');
 verifica('i mazzi sono gli stessi del gioco', /tipo==='ch'\?chC:csC/.test(html),
   'un mazzo duplicato per la modalità ibrida divergerebbe dalle carte fisiche alla prima modifica');
 verifica('il timer delle carte ha sempre un callback', /startTimerPop\(_hybCarta\.tm,_hybCarta\.txt,function\(\)\{\}\)/.test(html),
